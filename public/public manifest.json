@@ -1,0 +1,10 @@
+{
+  "name": "DASH Over 50 METHOD",
+  "short_name": "DASH",
+  "description": "AI-powered health tracking for over 50",
+  "start_url": "/dash-over-50-method/",
+  "display": "standalone",
+  "background_color": "#F7F3E9",
+  "theme_color": "#1B847C",
+  "icons": []
+}
