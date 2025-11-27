@@ -1,143 +1,84 @@
-This XML file does not appear to have any style information associated with it. The document tree is shown below.
-<feedback>
-<version>1.0</version>
-<report_metadata>
-<org_name>google.com</org_name>
-<email>noreply-dmarc-support@google.com</email>
-<extra_contact_info>https://support.google.com/a/answer/2466580</extra_contact_info>
-<report_id>18036272301848309875</report_id>
-<date_range>
-<begin>1764028800</begin>
-<end>1764115199</end>
-</date_range>
-</report_metadata>
-<policy_published>
-<domain>dashover50.com</domain>
-<adkim>r</adkim>
-<aspf>r</aspf>
-<p>none</p>
-<sp>none</sp>
-<pct>100</pct>
-<np>none</np>
-</policy_published>
-<record>
-<row>
-<source_ip>185.236.142.106</source_ip>
-<count>1</count>
-<policy_evaluated>
-<disposition>none</disposition>
-<dkim>pass</dkim>
-<spf>pass</spf>
-</policy_evaluated>
-</row>
-<identifiers>
-<header_from>dashover50.com</header_from>
-</identifiers>
-<auth_results>
-<dkim>
-<domain>inbound.systeme.io</domain>
-<result>pass</result>
-<selector>systemeio1</selector>
-</dkim>
-<dkim>
-<domain>dashover50.com</domain>
-<result>pass</result>
-<selector>systemeio1</selector>
-</dkim>
-<spf>
-<domain>si989887.dashover50.com</domain>
-<result>pass</result>
-</spf>
-</auth_results>
-</record>
-<record>
-<row>
-<source_ip>185.236.142.108</source_ip>
-<count>2</count>
-<policy_evaluated>
-<disposition>none</disposition>
-<dkim>pass</dkim>
-<spf>pass</spf>
-</policy_evaluated>
-</row>
-<identifiers>
-<header_from>dashover50.com</header_from>
-</identifiers>
-<auth_results>
-<dkim>
-<domain>inbound.systeme.io</domain>
-<result>pass</result>
-<selector>systemeio1</selector>
-</dkim>
-<dkim>
-<domain>dashover50.com</domain>
-<result>pass</result>
-<selector>systemeio1</selector>
-</dkim>
-<spf>
-<domain>si989887.dashover50.com</domain>
-<result>pass</result>
-</spf>
-</auth_results>
-</record>
-<record>
-<row>
-<source_ip>185.236.142.115</source_ip>
-<count>1</count>
-<policy_evaluated>
-<disposition>none</disposition>
-<dkim>pass</dkim>
-<spf>pass</spf>
-</policy_evaluated>
-</row>
-<identifiers>
-<header_from>dashover50.com</header_from>
-</identifiers>
-<auth_results>
-<dkim>
-<domain>inbound.systeme.io</domain>
-<result>pass</result>
-<selector>systemeio1</selector>
-</dkim>
-<dkim>
-<domain>dashover50.com</domain>
-<result>pass</result>
-<selector>systemeio1</selector>
-</dkim>
-<spf>
-<domain>si989887.dashover50.com</domain>
-<result>pass</result>
-</spf>
-</auth_results>
-</record>
-<record>
-<row>
-<source_ip>185.236.142.117</source_ip>
-<count>2</count>
-<policy_evaluated>
-<disposition>none</disposition>
-<dkim>pass</dkim>
-<spf>pass</spf>
-</policy_evaluated>
-</row>
-<identifiers>
-<header_from>dashover50.com</header_from>
-</identifiers>
-<auth_results>
-<dkim>
-<domain>inbound.systeme.io</domain>
-<result>pass</result>
-<selector>systemeio1</selector>
-</dkim>
-<dkim>
-<domain>dashover50.com</domain>
-<result>pass</result>
-<selector>systemeio1</selector>
-</dkim>
-<spf>
-<domain>si989887.dashover50.com</domain>
-<result>pass</result>
-</spf>
-</auth_results>
-</record>
-</feedback>
+import React, { useState } from 'react'
+import Header from './components/Header'
+import Footer from './components/Footer'
+import Dashboard from './components/Dashboard'
+import BloodPressure from './components/BloodPressure'
+import Education from './components/Education'
+import Exercise from './components/Exercise'
+import Meals from './components/Meals'
+import Medications from './components/Medications'
+import Progress from './components/Progress'
+import Settings from './components/Settings'
+import Reminders from './components/Reminders'
+import PrivacyPolicy from './components/PrivacyPolicy'
+import TermsOfService from './components/TermsOfService'
+
+type Screen = 'home' | 'dashboard' | 'bp' | 'education' | 'exercise' | 'meals' | 'meds' | 'progress' | 'settings' | 'reminders' | 'privacy' | 'terms'
+
+const titles: Record<Screen, string> = {
+  home: 'DASH Over 50 METHOD™',
+  dashboard: 'Dashboard',
+  bp: 'Blood Pressure',
+  education: 'Education',
+  exercise: 'Exercises',
+  meals: 'Meals',
+  meds: 'Medications',
+  progress: 'Progress',
+  settings: 'Settings',
+  reminders: 'Reminders',
+  privacy: 'Privacy Policy',
+  terms: 'Terms of Service',
+}
+
+const App: React.FC = () => {
+  const [screen, setScreen] = useState<Screen>('home')
+
+  const render = () => {
+    switch (screen) {
+      case 'dashboard': return <Dashboard setScreen={setScreen as any} />
+      case 'bp': return <BloodPressure />
+      case 'education': return <Education onNavigateToCoach={() => {}} />
+      case 'exercise': return <Exercise />
+      case 'meals': return <Meals onNavigateToCoach={() => {}} />
+      case 'meds': return <Medications />
+      case 'progress': return <Progress />
+      case 'settings': return <Settings />
+      case 'reminders': return <Reminders />
+      case 'privacy': return <PrivacyPolicy />
+      case 'terms': return <TermsOfService />
+      case 'home':
+      default:
+        return (
+          <div className="space-y-3 text-center">
+            <h1 className="text-3xl font-bold text-brandPrimary mb-2">DASH Over 50 METHOD™</h1>
+            <p className="text-textSecondary mb-4">Seleziona una sezione:</p>
+            <div className="grid grid-cols-2 gap-3 text-left">
+              <button className="bg-surface p-4 rounded-lg border hover:bg-brandPrimaryTint" onClick={() => setScreen('dashboard')}>📊 Dashboard</button>
+              <button className="bg-surface p-4 rounded-lg border hover:bg-brandPrimaryTint" onClick={() => setScreen('bp')}>❤️ BP</button>
+              <button className="bg-surface p-4 rounded-lg border hover:bg-brandPrimaryTint" onClick={() => setScreen('education')}>📚 Education</button>
+              <button className="bg-surface p-4 rounded-lg border hover:bg-brandPrimaryTint" onClick={() => setScreen('exercise')}>🏃 Exercise</button>
+              <button className="bg-surface p-4 rounded-lg border hover:bg-brandPrimaryTint" onClick={() => setScreen('meals')}>🍽️ Meals</button>
+              <button className="bg-surface p-4 rounded-lg border hover:bg-brandPrimaryTint" onClick={() => setScreen('meds')}>💊 Meds</button>
+              <button className="bg-surface p-4 rounded-lg border hover:bg-brandPrimaryTint" onClick={() => setScreen('reminders')}>🔔 Reminders</button>
+              <button className="bg-surface p-4 rounded-lg border hover:bg-brandPrimaryTint" onClick={() => setScreen('progress')}>📈 Progress</button>
+            </div>
+            <div className="pt-2 space-y-1">
+              <button onClick={() => setScreen('settings')} className="block w-full underline text-brandPrimary">⚙️ Settings</button>
+              <button onClick={() => setScreen('privacy')} className="block w-full underline text-sm text-textSecondary">Privacy</button>
+              <button onClick={() => setScreen('terms')} className="block w-full underline text-sm text-textSecondary">Terms</button>
+            </div>
+          </div>
+        )
+    }
+  }
+
+  return (
+    <div className="bg-creamBg max-w-[430px] mx-auto min-h-screen flex flex-col font-sans text-textPrimary leading-relaxed">
+      <Header screen={screen} setScreen={setScreen} title={titles[screen]} />
+      <main className="flex-grow px-4 pt-4 pb-20">{render()}</main>
+      <Footer setScreen={setScreen as any} />
+    </div>
+  )
+}
+
+export default App
