@@ -1,11 +1,3 @@
-import React from 'react'
-
-const App: React.FC = () => {
-  return (
-    <div className="bg-blue-500 text-white p-8 text-center">
-      <h1 className="text-4xl font-bold">CIAO! Se vedi questo, React funziona! 👍</h1>
-    </div>
-  )
+export default function App() {
+  return <h1 style={{ color: 'red', fontSize: '40px' }}>TEST FUNZIONA!</h1>
 }
-
-export default App
