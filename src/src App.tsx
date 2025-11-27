@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import Header from './components/Header'
 import Footer from './components/Footer'
 import Dashboard from './components/Dashboard'
@@ -10,100 +10,108 @@ import Medications from './components/Medications'
 import Progress from './components/Progress'
 import Settings from './components/Settings'
 import Reminders from './components/Reminders'
-import ProfileSetupScreen from './components/ProfileSetupScreen'
-import WelcomeScreen from './components/WelcomeScreen'
 import PrivacyPolicy from './components/PrivacyPolicy'
 import TermsOfService from './components/TermsOfService'
 
-type PageType = 
-  | 'dashboard' 
-  | 'blood-pressure' 
-  | 'education' 
-  | 'exercise' 
-  | 'meals' 
-  | 'medications' 
-  | 'progress' 
-  | 'settings' 
+type Screen =
+  | 'home'
+  | 'dashboard'
+  | 'bp'
+  | 'education'
+  | 'exercise'
+  | 'meals'
+  | 'meds'
+  | 'progress'
+  | 'settings'
   | 'reminders'
-  | 'welcome'
-  | 'profile-setup'
   | 'privacy'
   | 'terms'
 
 const App: React.FC = () => {
-  const [isLoading, setIsLoading] = useState(true)
-  const [currentPage, setCurrentPage] = useState<PageType>('dashboard')
-  const [isProfileComplete, setIsProfileComplete] = useState(false)
+  const [screen, setScreen] = useState<Screen>('home')
 
-  useEffect(() => {
-    // Controlla se il profilo è completato
-    const profile = localStorage.getItem('userProfile')
-    if (profile) {
-      setIsProfileComplete(true)
-    }
-    
-    const timer = setTimeout(() => setIsLoading(false), 1000)
-    return () => clearTimeout(timer)
-  }, [])
-
-  if (isLoading) {
-    return (
-      <main className="flex items-center justify-center h-screen bg-creamBg">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-4 border-brandPrimary border-t-transparent mx-auto mb-4"></div>
-          <h1 className="text-2xl font-bold text-brandPrimary">DASH Over 50 METHOD™</h1>
-        </div>
-      </main>
-    )
+  const screenTitle: Record<Screen, string> = {
+    home: 'DASH Over 50 METHOD™',
+    dashboard: 'Dashboard',
+    bp: 'Blood Pressure',
+    education: 'Education',
+    exercise: 'Exercises',
+    meals: 'Meals',
+    meds: 'Medications',
+    progress: 'Progress',
+    settings: 'Settings',
+    reminders: 'Reminders',
+    privacy: 'Privacy Policy',
+    terms: 'Terms of Service',
   }
 
-  // Se il profilo non è completato, mostra la schermata di benvenuto
-  if (!isProfileComplete) {
-    return (
-      <WelcomeScreen onComplete={() => setIsProfileComplete(true)} />
-    )
+  const onNavigateToCoach = (prompt: string) => {
+    // Per ora niente AI reale: solo messaggio
+    alert('AI Coach (mock): ' + prompt)
   }
 
-  const renderPage = () => {
-    switch (currentPage) {
+  const renderScreen = () => {
+    switch (screen) {
       case 'dashboard':
-        return <Dashboard />
-      case 'blood-pressure':
+        // Dashboard accetta setScreen (dal tuo componente)
+        return <Dashboard setScreen={(s: any) => setScreen(s)} />
+      case 'bp':
         return <BloodPressure />
       case 'education':
-        return <Education />
+        return <Education onNavigateToCoach={onNavigateToCoach} />
       case 'exercise':
         return <Exercise />
       case 'meals':
-        return <Meals />
-      case 'medications':
+        return <Meals onNavigateToCoach={onNavigateToCoach} />
+      case 'meds':
         return <Medications />
       case 'progress':
         return <Progress />
-      case 'settings':
-        return <Settings onNavigate={setCurrentPage} />
       case 'reminders':
         return <Reminders />
+      case 'settings':
+        return <Settings />
       case 'privacy':
         return <PrivacyPolicy />
       case 'terms':
         return <TermsOfService />
+      case 'home':
       default:
-        return <Dashboard />
+        return (
+          <div className="space-y-3 text-center">
+            <h1 className="text-3xl font-bold text-brandPrimary mb-2">DASH Over 50 METHOD™</h1>
+            <p className="text-textSecondary mb-4">Seleziona una sezione:</p>
+
+            <div className="grid grid-cols-2 gap-3 text-left">
+              <button onClick={() => setScreen('dashboard')} className="bg-surface p-4 rounded-lg border hover:bg-brandPrimaryTint">📊 Dashboard</button>
+              <button onClick={() => setScreen('bp')} className="bg-surface p-4 rounded-lg border hover:bg-brandPrimaryTint">❤️ Blood Pressure</button>
+              <button onClick={() => setScreen('education')} className="bg-surface p-4 rounded-lg border hover:bg-brandPrimaryTint">📚 Education</button>
+              <button onClick={() => setScreen('exercise')} className="bg-surface p-4 rounded-lg border hover:bg-brandPrimaryTint">🏃 Exercises</button>
+              <button onClick={() => setScreen('meals')} className="bg-surface p-4 rounded-lg border hover:bg-brandPrimaryTint">🍽️ Meals</button>
+              <button onClick={() => setScreen('meds')} className="bg-surface p-4 rounded-lg border hover:bg-brandPrimaryTint">💊 Medications</button>
+              <button onClick={() => setScreen('reminders')} className="bg-surface p-4 rounded-lg border hover:bg-brandPrimaryTint">🔔 Reminders</button>
+              <button onClick={() => setScreen('progress')} className="bg-surface p-4 rounded-lg border hover:bg-brandPrimaryTint">📈 Progress</button>
+            </div>
+
+            <div className="pt-2">
+              <button onClick={() => setScreen('settings')} className="underline text-brandPrimary">⚙️ Settings</button>
+            </div>
+          </div>
+        )
     }
   }
 
   return (
-    <div className="flex flex-col h-screen bg-creamBg">
-      <Header onNavigate={setCurrentPage} currentPage={currentPage} />
-      
-      <main className="flex-grow overflow-y-auto">
-        <div className="max-w-6xl mx-auto p-4">
-          {renderPage()}
-        </div>
+    <div className="bg-creamBg max-w-[430px] mx-auto min-h-screen flex flex-col font-sans text-textPrimary leading-relaxed">
+      {/* Header del tuo progetto richiede: screen, setScreen, title */}
+      <Header screen={screen} setScreen={setScreen} title={screenTitle[screen]} />
+
+      <main className="flex-grow px-4 pt-4 pb-20">
+        {renderScreen()}
       </main>
-      
-      <Footer onNavigate={setCurrentPage} />
+
+      {/* Footer del tuo progetto richiede: setScreen */}
+      <Footer setScreen={(s) => setScreen(s as Screen)} />
     </div>
   )
 }
