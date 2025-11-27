@@ -3,9 +3,9 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
-  base: '/',
+  base: '/',        // base root per sviluppo
   server: {
     port: 5173,
-    open: true
+    open: false     // evitiamo l’apertura automatica di /dash-over-50-method/
   }
 })
