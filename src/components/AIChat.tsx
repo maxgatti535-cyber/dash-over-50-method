@@ -196,7 +196,7 @@ const AICoach: React.FC<AICoachProps> = ({ initialPrompt, clearInitialPrompt }) 
         const personalizedSystemPrompt = AI_COACH_SYSTEM_PROMPT + contextString;
 
         // Initialize using the specific guideline method
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        const ai = new GoogleGenerativeAI({ apiKey: process.env.API_KEY });
         
         let response: GenerateContentResponse | undefined;
         const modelsToTry = ['gemini-2.5-flash', 'gemini-2.5-flash-latest', 'gemini-pro'];
