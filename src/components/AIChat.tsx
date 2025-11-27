@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
 import { getLocalStorageItem, markdownToHtml } from './utils';
 
 const AI_COACH_SYSTEM_PROMPT = `IDENTITY & ROLE
