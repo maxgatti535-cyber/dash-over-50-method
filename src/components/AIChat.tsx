@@ -207,22 +207,22 @@ for (const modelName of modelsToTry) {
         const chat = model.startChat({ systemInstruction: personalizedSystemPrompt });
 
         response = await chat.sendMessage(messageText);
-{
-                    model: modelName,
-                    config: { systemInstruction: personalizedSystemPrompt },
-                });
-                
-                response = await chat.sendMessage({ message: messageText });
-                if (response && response.text) {
-                    break; // Success
-                }
-            } catch (e) {
-                console.warn(`Model ${modelName} failed:`, e);
-            }
+        if (response && response.text) {
+            break; // Success
         }
+    } catch (e) {
+        console.warn(`Model ${modelName} failed:`, e);
+    }
+}
 
-        if (!response || !response.text) {
-            throw new Error("All models failed to generate a response.");
+if (!response || !response.text) {
+    throw new Error("All models failed to generate a response.");
+}
+
+const aiMessage = { text: response.text, sender: 'ai' };
+setMessages(prev => [...prev, aiMessage]);
+success = true;
+
         }
         
         const aiMessage = { text: response.text, sender: 'ai' };
