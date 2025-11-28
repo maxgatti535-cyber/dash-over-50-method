@@ -194,7 +194,8 @@ const sendMessage = async (messageText: string): Promise<boolean> => {
       const ai = new GoogleGenerativeAI({ apiKey: import.meta.env.VITE_GOOGLE_API_KEY });
 
       let response: any;
-      const modelsToTry = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'];
+      const modelsToTry = ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-2.0-flash'];
+
 
       for (const modelName of modelsToTry) {
         try {
