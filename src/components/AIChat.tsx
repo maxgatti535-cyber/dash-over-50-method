@@ -198,16 +198,16 @@ const AICoach: React.FC<AICoachProps> = ({ initialPrompt, clearInitialPrompt }) 
         // Initialize using the specific guideline method
        const ai = new GoogleGenerativeAI({ apiKey: import.meta.env.VITE_GOOGLE_API_KEY });
 
-        
-        let response: GenerateContentResponse | undefined;
-        const modelsToTry = ['gemini-2.5-flash', 'gemini-2.5-flash-latest', 'gemini-pro'];
+let response: any;
+const modelsToTry = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'];
 
-        for (const modelName of modelsToTry) {
-            try {
-                // Using ai.models.generateContent directly as per some guidelines, or chats for history
-                // Since we are maintaining simple chat history in UI, we can use a fresh chat or generateContent
-                // The provided snippet used chats.create, sticking to that pattern but with correct Init
-                const chat = ai.chats.create({
+for (const modelName of modelsToTry) {
+    try {
+        const model = ai.getGenerativeModel({ model: modelName });
+        const chat = model.startChat({ systemInstruction: personalizedSystemPrompt });
+
+        response = await chat.sendMessage(messageText);
+{
                     model: modelName,
                     config: { systemInstruction: personalizedSystemPrompt },
                 });
