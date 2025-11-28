@@ -1,64 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { getLocalStorageItem, markdownToHtml } from './utils';
-
-const AI_COACH_SYSTEM_PROMPT = `IDENTITY & ROLE
-You are "DASH Coach," a digital assistant specialized in DASH eating and cardiovascular health for adults over 50. You help with nutrition, physical activity, blood pressure management, and motivation — always with empathy, clarity, and within wellness limits.
-
-CRITICAL LIMITATIONS
-You are NOT a doctor — no medical diagnoses.
-You do NOT change medication dosages.
-You do NOT handle emergencies — direct user to call 911 in serious cases.
-Always encourage consulting a healthcare professional for important decisions.
-
-COMMUNICATION STYLE
-Empathetic, reassuring, simple (avoid complex medical jargon).
-Positive, encouraging, actionable.
-Brief responses (3–5 sentences), unless user asks for more detail.
-Use markdown for formatting, especially for lists (* item) and bold text (**bold**).
-
-USER PROFILE USAGE
-You already have these details: name, age, gender, weight, height, BMI, blood pressure trends, medications, medical conditions, dietary preferences, sodium target, activity level, tracking history.
-
-Use these for personalized advice. If some data is missing, assume generic values or kindly request missing info only if essential.
-
-DASH NUTRITION PRINCIPLES (Core)
-Whole grains: 6–8 servings
-Vegetables: 4–5 servings
-Fruits: 4–5 servings
-Low-fat dairy: 2–3 servings
-Lean proteins: ≤170 g/day
-Healthy fats: 2–3 servings/day
-Sugars & sweets: ≤5 servings/week
-Sodium: follower's target (e.g. <2300 mg/day or <1500 mg if needed)
-
-BLOOD PRESSURE GUIDELINES
-Category	Systolic	Diastolic
-Normal	<120	<80
-Elevated	120–129	<80
-Hypertension Stage 1	130–139 or 80–89
-Hypertension Stage 2	≥140 or ≥90
-Hypertensive Crisis	>180 or >120
-If blood pressure is >180/120 with symptoms, this is an emergency.
-
-RESPONSE DIRECTIVES
-Be actionable and concrete — always include a practical suggestion.
-Use the user profile actively — reference their targets like sodium, activity, preferences.
-Include a brief disclaimer if answering medical or drug-related topics ("this is general guidance; always verify with doctor").
-If essential data is missing, politely ask for clarification.
-Use clear, concrete examples adapted to the user's profile.
-**IMPORTANT**: Always format your responses using markdown. Use asterisks for bullet points (e.g., "* This is a point.") and double asterisks for bold text (e.g., "**This is bold**."). This is critical for the app to display your response correctly.
-
-SAFETY FILTERS
-If very high blood pressure with symptoms: "Call 911 immediately."
-If user asks for medication changes: refer to healthcare professional.
-If new/worsening conditions: suggest doctor visit.`;
-
 interface AICoachProps {
   initialPrompt?: string;
   clearInitialPrompt?: () => void;
 }
-
 const quickActionMap = {
   checkin: 'Daily Check-In',
   plan3d: '3-Day DASH Plan (~1,800 mg sodium/day)',
@@ -67,7 +13,6 @@ const quickActionMap = {
   eatout: 'Eat Out Low Sodium',
 };
 type QuickActionKey = keyof typeof quickActionMap;
-
 const AICoach: React.FC<AICoachProps> = ({ initialPrompt, clearInitialPrompt }) => {
   const [messages, setMessages] = useState([{ text: "Hello! I'm your DASH Coach. How can I help you today?", sender: 'ai' }]);
   const [input, setInput] = useState('');
@@ -75,7 +20,6 @@ const AICoach: React.FC<AICoachProps> = ({ initialPrompt, clearInitialPrompt }) 
   const [activeQuickActions, setActiveQuickActions] = useState<string[]>([]);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-
   useEffect(() => {
     const updateQuickActions = () => {
       const coachSettings = getLocalStorageItem('preferences.coachQuickActions', {
@@ -85,68 +29,49 @@ const AICoach: React.FC<AICoachProps> = ({ initialPrompt, clearInitialPrompt }) 
         movement: true,
         eatout: true,
       });
-
       const enabledActions = (Object.keys(quickActionMap) as QuickActionKey[])
         .filter(key => coachSettings[key])
         .map(key => quickActionMap[key]);
-
       setActiveQuickActions(enabledActions);
     };
-
     updateQuickActions();
     window.addEventListener('settings-changed', updateQuickActions);
-
     return () => {
       window.removeEventListener('settings-changed', updateQuickActions);
     };
   }, []);
-
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
-
   useEffect(() => {
     if (initialPrompt) {
       setInput(initialPrompt);
       if (clearInitialPrompt) clearInitialPrompt();
     }
   }, [initialPrompt, clearInitialPrompt]);
-
   const addBPContext = () => {
     let readings = getLocalStorageItem<any[]>('dash_bp_readings', []);
-
     if (readings.length === 0) {
       setInput(prev => "CONTEXT: I have no BP readings logged yet.\n\n" + prev.trim());
       inputRef.current?.focus();
       return;
     }
-
     readings.sort((a, b) => new Date(b.date + 'T' + b.time).getTime() - new Date(a.date + 'T' + a.time).getTime());
-
     const recentReadings = readings.slice(0, 5);
     let contextString = "Here are my most recent blood pressure readings for context:\n";
     recentReadings.forEach(r => {
       const date = new Date(r.date + 'T' + r.time).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
       contextString += `- ${date}: ${r.systolic}/${r.diastolic} mmHg\n`;
     });
-
     setInput(prev => contextString + "\n" + prev.trim());
     inputRef.current?.focus();
   };
-
-const sendMessage = async (messageText: string): Promise<boolean> => {
+  const sendMessage = async (messageText: string): Promise<boolean> => {
     if (!messageText.trim()) return true;
-    
-    console.log("DEBUG - API KEY:", import.meta.env.VITE_GOOGLE_API_KEY);
-
-    const userMessage = { text: messageText, sender: 'user' };
-
-
     const userMessage = { text: messageText, sender: 'user' };
     setMessages(prev => [...prev, userMessage]);
     setLoading(true);
     let success = false;
-
     try {
       const profile = {
         name: getLocalStorageItem('profile.name', ''),
@@ -162,12 +87,10 @@ const sendMessage = async (messageText: string): Promise<boolean> => {
         exerciseLevel: getLocalStorageItem('preferences.exerciseLevelDefault', 'beginner'),
       };
       const medications: any[] = getLocalStorageItem('dash_medications_v2', []);
-
       let contextString = `\n\n--- USER PROFILE & CONTEXT ---\n`;
       if (profile.name) contextString += `Name: ${profile.name}\n`;
       if (profile.age) contextString += `Age: ${profile.age}\n`;
       if (profile.sex) contextString += `Sex: ${profile.sex}\n`;
-
       if (profile.units === 'us') {
         if (profile.heightFt && profile.heightIn) contextString += `Height: ${profile.heightFt}' ${profile.heightIn}"\n`;
         if (profile.weight) contextString += `Weight: ${profile.weight} lbs\n`;
@@ -177,13 +100,11 @@ const sendMessage = async (messageText: string): Promise<boolean> => {
       }
       contextString += `Sodium Target: ${profile.sodiumTarget} mg/day\n`;
       contextString += `Activity Level: ${profile.exerciseLevel}\n`;
-
       if (profile.medicalConditions) {
         contextString += `Medical Conditions: ${profile.medicalConditions}\n`;
       } else {
         contextString += `Medical Conditions: None listed.\n`;
       }
-
       if (medications.length > 0) {
         contextString += `\nMedications:\n`;
         medications.forEach(med => {
@@ -193,21 +114,26 @@ const sendMessage = async (messageText: string): Promise<boolean> => {
         contextString += `\nMedications: None listed.\n`;
       }
       contextString += `----------------------------\n`;
-
-      const personalizedSystemPrompt = AI_COACH_SYSTEM_PROMPT + contextString;
-
-      const ai = new GoogleGenerativeAI({ apiKey: import.meta.env.VITE_GOOGLE_API_KEY });
-
+      const SHORT_SYSTEM_PROMPT = `You are "DASH Coach," a digital assistant specialized in DASH eating and cardiovascular health for adults over 50.
+Always respond in markdown, use bullet points (*), and bold text (**). Be empathetic, reassuring, and concise.`;
+      const personalizedSystemPrompt = SHORT_SYSTEM_PROMPT;
+      const apiKey = import.meta.env.VITE_GOOGLE_API_KEY;
+      if (!apiKey) {
+        const errorMessage = { text: "⚠️ API key per Gemini non configurata. Aggiungi VITE_GOOGLE_API_KEY al file .env nella radice del progetto.", sender: 'ai' };
+        setMessages(prev => [...prev, errorMessage]);
+        setLoading(false);
+        return false;
+      }
+      const ai = new GoogleGenerativeAI(apiKey);
       let response: any;
-      const modelsToTry = ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-2.0-flash'];
-
-
+      // Modelli disponibili; se alcuni non esistono, il fallback proverà gli altri
+      const modelsToTry = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-1.0-flash'];
       for (const modelName of modelsToTry) {
         try {
           const model = ai.getGenerativeModel({ model: modelName });
           const chat = model.startChat({ systemInstruction: personalizedSystemPrompt });
-
-          response = await chat.sendMessage(messageText);
+          const fullMessage = `${contextString}\n\n${messageText}`;
+          response = await chat.sendMessage(fullMessage);
           if (response && response.text) {
             break;
           }
@@ -215,15 +141,12 @@ const sendMessage = async (messageText: string): Promise<boolean> => {
           console.warn(`Model ${modelName} failed:`, e);
         }
       }
-
       if (!response || !response.text) {
         throw new Error("All models failed to generate a response.");
       }
-
       const aiMessage = { text: response.text, sender: 'ai' };
       setMessages(prev => [...prev, aiMessage]);
       success = true;
-
     } catch (error) {
       console.error("Gemini API error:", error);
       let errorMessageText = "Sorry, I'm having trouble connecting right now. Please try again later.";
@@ -247,23 +170,18 @@ const sendMessage = async (messageText: string): Promise<boolean> => {
     }
     return success;
   };
-
   const handleSend = async () => {
     const messageToSend = input;
     if (!messageToSend.trim()) return;
-
     setInput('');
     const success = await sendMessage(messageToSend);
-
     if (!success) {
       setInput(messageToSend);
     }
   };
-
   const handleQuickAction = (text: string) => {
     sendMessage(text);
   };
-
   return (
     <div className="flex flex-col bg-surface h-full">
       <div className="flex-grow p-2 space-y-4 overflow-y-auto">
@@ -283,7 +201,6 @@ const sendMessage = async (messageText: string): Promise<boolean> => {
         )}
         <div ref={chatEndRef} />
       </div>
-
       <div className="p-2 bg-surface border-t border-border">
         <div className="px-2 pb-2">
           <button
@@ -319,5 +236,4 @@ const sendMessage = async (messageText: string): Promise<boolean> => {
     </div>
   );
 };
-
 export default AICoach;
