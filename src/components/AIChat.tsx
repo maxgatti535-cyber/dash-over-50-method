@@ -134,7 +134,7 @@ const AICoach: React.FC<AICoachProps> = ({ initialPrompt, clearInitialPrompt }) 
     inputRef.current?.focus();
   };
 
-  const sendMessage = async (messageText: string): Promise<boolean> => {
+const sendMessage = async (messageText: string): Promise<boolean> => {
     if (!messageText.trim()) return true;
 
     const userMessage = { text: messageText, sender: 'user' };
