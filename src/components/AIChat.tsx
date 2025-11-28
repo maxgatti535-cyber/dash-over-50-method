@@ -196,7 +196,7 @@ const AICoach: React.FC<AICoachProps> = ({ initialPrompt, clearInitialPrompt }) 
         const personalizedSystemPrompt = AI_COACH_SYSTEM_PROMPT + contextString;
 
         // Initialize using the specific guideline method
-       const ai = new GoogleGenerativeAI({ apiKey: import.meta.env.VITE_GOOGLE_API_KEY });
+const ai = new GoogleGenerativeAI({ apiKey: import.meta.env.VITE_GOOGLE_API_KEY });
 
 let response: any;
 const modelsToTry = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'];
@@ -222,107 +222,3 @@ if (!response || !response.text) {
 const aiMessage = { text: response.text, sender: 'ai' };
 setMessages(prev => [...prev, aiMessage]);
 success = true;
-
-        }
-        
-        const aiMessage = { text: response.text, sender: 'ai' };
-        setMessages(prev => [...prev, aiMessage]);
-        success = true;
-
-    } catch (error) {
-        console.error("Gemini API error:", error);
-        let errorMessageText = "Sorry, I'm having trouble connecting right now. Please try again later.";
-        if (error instanceof Error) {
-            const lowerCaseError = error.message.toLowerCase();
-            if (lowerCaseError.includes('permission') || lowerCaseError.includes('denied')) {
-                errorMessageText = "It looks like there's a permission issue with the AI service. Please contact support.";
-            } else if (lowerCaseError.includes('quota')) {
-                errorMessageText = "The AI service usage limit has been reached. Please try again later.";
-            } else if (lowerCaseError.includes('model') && (lowerCaseError.includes('not found') || lowerCaseError.includes('unavailable'))) {
-                 errorMessageText = "The AI model is currently unavailable. Please try again later.";
-            } else if (lowerCaseError.includes('api key')) {
-                 errorMessageText = "System Error: API Key configuration is missing. Please check your environment settings.";
-            }
-        }
-        const errorMessage = { text: errorMessageText, sender: 'ai' };
-        setMessages(prev => [...prev, errorMessage]);
-        success = false;
-    } finally {
-        setLoading(false);
-    }
-    return success;
-  };
-
-  const handleSend = async () => {
-    const messageToSend = input;
-    if (!messageToSend.trim()) return;
-    
-    setInput(''); // Optimistically clear
-    const success = await sendMessage(messageToSend);
-    
-    if (!success) {
-        setInput(messageToSend); // Restore on failure
-    }
-  };
-
-  const handleQuickAction = (text: string) => {
-    sendMessage(text);
-  };
-
-  return (
-    <div className="flex flex-col bg-surface h-full">
-      <div className="flex-grow p-2 space-y-4 overflow-y-auto">
-        {messages.map((msg, index) => (
-          <div key={index} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`p-3 rounded-2xl max-w-xs md:max-w-md shadow-sm ${msg.sender === 'user' ? 'bg-brandPrimary text-white rounded-br-none' : 'bg-brandPrimaryTint text-textPrimary rounded-bl-none'}`}>
-              <div className="prose text-lg" dangerouslySetInnerHTML={{ __html: markdownToHtml(msg.text) }}></div>
-            </div>
-          </div>
-        ))}
-        {loading && (
-          <div className="flex justify-start">
-             <div className="p-3 rounded-2xl bg-brandPrimaryTint text-textPrimary rounded-bl-none">
-                <span className="animate-pulse text-lg">● ● ●</span>
-            </div>
-          </div>
-        )}
-        <div ref={chatEndRef} />
-      </div>
-
-      <div className="p-2 bg-surface border-t border-border">
-         <div className="px-2 pb-2">
-            <button 
-                onClick={addBPContext} 
-                className="w-full text-left text-accentBlue font-semibold text-lg py-2 px-3 rounded-lg border-2 border-dashed border-accentBlue hover:bg-accentBlue/10 transition-colors"
-            >
-                + Include Recent BP Readings in Message
-            </button>
-         </div>
-         <div className="flex overflow-x-auto whitespace-nowrap gap-2 mb-3 pb-2">
-          {activeQuickActions.map(action => (
-            <button key={action} onClick={() => handleQuickAction(action)} className="flex-shrink-0 px-4 py-3 bg-brandPrimaryTint text-brandPrimary rounded-full text-base font-medium hover:bg-brandAccent/50 transition-colors min-h-[48px]">
-              {action}
-            </button>
-          ))}
-        </div>
-        <div className="flex items-center space-x-2">
-          <input
-            ref={inputRef}
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-            className="flex-grow p-3 border border-border bg-surface rounded-lg h-12 text-lg focus:border-transparent focus:ring-2 focus:ring-brandPrimary"
-            placeholder="Type your message..."
-            disabled={loading}
-          />
-          <button onClick={handleSend} disabled={loading || !input.trim()} className="bg-brandPrimary text-white rounded-full h-12 w-12 flex items-center justify-center flex-shrink-0 disabled:bg-textMuted transition-colors" aria-label="Send message">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default AICoach;
