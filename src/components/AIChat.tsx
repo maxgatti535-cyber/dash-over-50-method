@@ -136,6 +136,11 @@ const AICoach: React.FC<AICoachProps> = ({ initialPrompt, clearInitialPrompt }) 
 
 const sendMessage = async (messageText: string): Promise<boolean> => {
     if (!messageText.trim()) return true;
+    
+    console.log("DEBUG - API KEY:", import.meta.env.VITE_GOOGLE_API_KEY);
+
+    const userMessage = { text: messageText, sender: 'user' };
+
 
     const userMessage = { text: messageText, sender: 'user' };
     setMessages(prev => [...prev, userMessage]);
