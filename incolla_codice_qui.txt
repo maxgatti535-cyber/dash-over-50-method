@@ -1,2 +1,0 @@
-INCOLLA QUI IL CODICE DA GOOGLE AI STUDIO
-(Cancella questa riga e incolla il codice JavaScript o cURL che hai copiato)
