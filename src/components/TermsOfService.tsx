@@ -42,4 +42,4 @@ const TermsOfService: React.FC<LegalPageProps> = ({ setScreen }) => {
   );
 };
 export default TermsOfService;
-export default TermsOfService;
+
