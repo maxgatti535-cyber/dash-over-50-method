@@ -64,3 +64,6 @@ dash-over-50-method/
 GitHub Pages + GitHub Actions
 
 Visita: `https://maxgatti535-cyber.github.io/dash-over-50-method/`
+
+## Status
+![Build Status](https://github.com/maxgatti535-cyber/dash-over-50-method/actions/workflows/main.yml/badge.svg)
