@@ -138,7 +138,7 @@ const App: React.FC = () => {
 
   const renderScreen = () => {
     try {
-      if (screen === 'settings') return <Settings />;
+      if (screen === 'settings') return <Settings setScreen={setScreen} />;
       if (screen === 'privacy') return <PrivacyPolicy setScreen={setScreen} />;
       if (screen === 'terms') return <TermsOfService setScreen={setScreen} />;
 
