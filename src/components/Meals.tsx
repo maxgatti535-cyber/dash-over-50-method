@@ -1,6 +1,9 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { recipes, DayPlan, Recipe, recipeDataVersion, weeklyPlans } from './mealData';
 import { getLocalStorageItem, setLocalStorageItem } from './utils';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 // --- TYPES ---
 interface MealPlanProps {
@@ -39,6 +42,8 @@ const LockIcon = ({ isLocked }: { isLocked: boolean }) => (
     </svg>
 );
 const ListIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M9 6l11 0" /><path d="M9 12l11 0" /><path d="M9 18l11 0" /><path d="M5 6l0 .01" /><path d="M5 12l0 .01" /><path d="M5 18l0 .01" /></svg>;
+const DownloadIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" /><path d="M7 11l5 5l5 -5" /><path d="M12 4l0 12" /></svg>;
+const ChatIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M3 20l1.3 -3.9a9 8 0 1 1 3.4 2.9l-4.7 1" /><path d="M12 12l0 .01" /><path d="M8 12l0 .01" /><path d="M16 12l0 .01" /></svg>;
 
 // --- HELPERS ---
 const getRandomRecipe = (type: string, excludeIds: string[] = []): string => {
@@ -289,8 +294,7 @@ const MealPlan: React.FC<MealPlanProps> = ({ onNavigateToCoach }) => {
 
         const ingredients = useMemo(() => {
             const list: string[] = [];
-            // Generate list for the CURRENT WEEK only, or maybe all weeks? Usually shopping list is weekly.
-            // Let's do current week.
+            // Generate list for the CURRENT WEEK only
             const currentWeekPlan = monthPlan[currentWeek];
             if (currentWeekPlan) {
                 currentWeekPlan.forEach(day => {
@@ -312,13 +316,34 @@ const MealPlan: React.FC<MealPlanProps> = ({ onNavigateToCoach }) => {
             setCheckedItems(prev => ({ ...prev, [item]: !prev[item] }));
         };
 
+        const downloadPDF = () => {
+            const doc = new jsPDF();
+            doc.text(`Shopping List - Week ${currentWeek + 1}`, 14, 20);
+
+            const tableData = ingredients.map(ing => [ing]);
+
+            autoTable(doc, {
+                startY: 30,
+                head: [['Item']],
+                body: tableData,
+            });
+
+            doc.save(`dash-shopping-list-week-${currentWeek + 1}.pdf`);
+        };
+
         return (
             <div className="space-y-4 animate-fade-in">
                 <button onClick={() => setView('plan')} className="flex items-center gap-1 text-lg text-textSecondary font-bold hover:text-brandPrimary mb-2">
                     <BackIcon /> Back to Plan
                 </button>
                 <div className="bg-surface p-5 rounded-xl shadow-sm shadow-shadowSoft border border-brandPrimaryDark">
-                    <h2 className="text-2xl font-bold text-textPrimary mb-4">Shopping List (Week {currentWeek + 1})</h2>
+                    <div className="flex justify-between items-center mb-4">
+                        <h2 className="text-2xl font-bold text-textPrimary">Shopping List (Week {currentWeek + 1})</h2>
+                        <button onClick={downloadPDF} className="flex items-center gap-2 px-3 py-2 bg-brandPrimary text-white rounded-lg hover:bg-brandPrimaryDark transition-colors">
+                            <DownloadIcon /> PDF
+                        </button>
+                    </div>
+
                     {ingredients.length === 0 ? (
                         <p className="text-textSecondary">No meals in plan.</p>
                     ) : (
@@ -336,6 +361,14 @@ const MealPlan: React.FC<MealPlanProps> = ({ onNavigateToCoach }) => {
                             ))}
                         </div>
                     )}
+                    <div className="mt-6 pt-4 border-t border-border">
+                        <button
+                            onClick={() => onNavigateToCoach(`Here is my shopping list for Week ${currentWeek + 1}: ${ingredients.join(', ')}. Can you help me organize this by aisle or suggest substitutions?`)}
+                            className="w-full flex justify-center items-center gap-2 py-3 bg-brandPrimaryTint text-brandPrimaryDark font-bold rounded-xl hover:bg-brandAccent/20 transition-colors"
+                        >
+                            <ChatIcon /> Ask Coach about this list
+                        </button>
+                    </div>
                 </div>
             </div>
         );
@@ -445,6 +478,50 @@ const MealPlan: React.FC<MealPlanProps> = ({ onNavigateToCoach }) => {
                             </div>
                         );
                     })}
+                </div>
+
+                {/* Grocery List Summary Card at Bottom */}
+                <div className="mt-6 bg-surface p-4 rounded-xl shadow-sm border border-brandPrimaryDark">
+                    <div className="flex justify-between items-center mb-2">
+                        <h3 className="text-xl font-bold text-textPrimary">Weekly Grocery List</h3>
+                        <button onClick={() => setView('shoppingList')} className="text-brandPrimary font-bold text-sm hover:underline">View Full List</button>
+                    </div>
+                    <p className="text-textSecondary text-sm mb-4">
+                        Get all ingredients for Week {currentWeek + 1} meals.
+                    </p>
+                    <div className="flex gap-3">
+                        <button
+                            onClick={() => {
+                                // Re-use the logic from ShoppingListView or just navigate there and trigger download?
+                                // Better to just instantiate the PDF here too or extract the function.
+                                // For simplicity, let's just navigate to the view for now as it has the full controls.
+                                setView('shoppingList');
+                            }}
+                            className="flex-1 flex justify-center items-center gap-2 py-2 bg-brandPrimary text-white rounded-lg hover:bg-brandPrimaryDark transition-colors"
+                        >
+                            <DownloadIcon /> Download PDF
+                        </button>
+                        <button
+                            onClick={() => {
+                                // Generate list for prompt
+                                const list: string[] = [];
+                                const currentWeekPlan = monthPlan[currentWeek];
+                                if (currentWeekPlan) {
+                                    currentWeekPlan.forEach(day => {
+                                        if (day) Object.values(day).forEach(recipeId => {
+                                            const r = recipes[recipeId as string];
+                                            if (r) list.push(...r.ingredients);
+                                        });
+                                    });
+                                }
+                                const ingredients = Array.from(new Set(list)).sort();
+                                onNavigateToCoach(`Here is my shopping list for Week ${currentWeek + 1}: ${ingredients.join(', ')}. Can you help me organize this?`);
+                            }}
+                            className="flex-1 flex justify-center items-center gap-2 py-2 bg-brandPrimaryTint text-brandPrimaryDark font-bold rounded-lg hover:bg-brandAccent/20 transition-colors"
+                        >
+                            <ChatIcon /> Ask Coach
+                        </button>
+                    </div>
                 </div>
             </div>
         );
