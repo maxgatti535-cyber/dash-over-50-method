@@ -20,7 +20,7 @@ export interface DayPlan {
 }
 
 // Version identifier for the current recipe dataset
-export const recipeDataVersion = 'v10-ebook-dinners-20240727';
+export const recipeDataVersion = 'v11-structured-4weeks';
 
 // --- RECIPE DATABASE ---
 export const recipes: { [id: string]: Recipe } = {
@@ -157,7 +157,7 @@ export const recipes: { [id: string]: Recipe } = {
     tips_variation: 'Use low-fat cream cheese instead of avocado for a different texture.',
     source: 'THE DASH DIET AFTER 50',
   },
-   'quinoa-black-bean-bowl': {
+  'quinoa-black-bean-bowl': {
     id: 'quinoa-black-bean-bowl',
     title: 'Quinoa and Black Bean Breakfast Bowl',
     mealType: 'breakfast',
@@ -313,7 +313,7 @@ export const recipes: { [id: string]: Recipe } = {
     tips_variation: 'Swap pecans for walnuts or almonds. Add dried cranberries or raisins to the crumble.',
     source: 'DASH Over 50 - Holiday Reset Edition',
   },
-   'spiced-pumpkin-buddha-bowl': {
+  'spiced-pumpkin-buddha-bowl': {
     id: 'spiced-pumpkin-buddha-bowl',
     title: 'Spiced Pumpkin and Chickpea Buddha Bowl',
     mealType: 'breakfast',
@@ -410,7 +410,7 @@ export const recipes: { [id: string]: Recipe } = {
     tips_variation: 'Use tempeh or cooked chickpeas instead of tofu. Swap Greek yogurt for a dairy-free yogurt.',
     source: 'Cookbook DASH Diet for Couples',
   },
-   'tuna-white-bean-nicoise-salad': {
+  'tuna-white-bean-nicoise-salad': {
     id: 'tuna-white-bean-nicoise-salad',
     title: 'Tuna and White Bean Niçoise Salad',
     mealType: 'lunch',
@@ -808,4 +808,44 @@ export const recipes: { [id: string]: Recipe } = {
     tips_variation: 'Add corn, diced bell peppers, or ground turkey for more substance. Adjust chili powder to your taste.',
     source: 'THE DASH DIET AFTER 50',
   },
+};
+
+// --- PRE-DEFINED WEEKLY PLANS (Week 1 - 4) ---
+export const weeklyPlans: Record<number, DayPlan[]> = {
+  1: [ // Week 1
+    { breakfast: 'avocado-toast-whole-grain', lunch: 'lemon-tahini-chickpea-salad-bowl', snack: 'greek-yogurt-honey-nuts', dinner: 'lemon-herb-cod-asparagus' }, // Mon
+    { breakfast: 'instant-oatmeal-flaxseed', lunch: 'turkey-avocado-wrap-cilantro-yogurt', snack: 'baked-brie-apple-rosemary', dinner: 'one-pan-chicken-root-veg' }, // Tue
+    { breakfast: 'spinach-almond-milk-smoothie', lunch: 'grilled-vegetable-pesto-farro-bowl', snack: 'citrus-roasted-beet-arugula-bites', dinner: 'black-bean-burgers' }, // Wed
+    { breakfast: 'scrambled-tofu-peppers', lunch: 'avocado-white-bean-sandwich', snack: 'poached-salmon-cucumber-rounds', dinner: 'turkey-pepper-skillet' }, // Thu
+    { breakfast: 'greek-yogurt-honey-nuts', lunch: 'warm-barley-mushroom-pilaf-spinach', snack: 'cranberry-herb-goat-cheese-crostini', dinner: 'sheet-pan-salmon-broccoli' }, // Fri
+    { breakfast: 'egg-frittata-whole-grain-toast', lunch: 'roasted-beet-orange-goat-cheese-salad', snack: 'maple-glazed-sweet-potato-rounds', dinner: 'chicken-stir-fry' }, // Sat
+    { breakfast: 'baked-oatmeal-cinnamon-apples', lunch: 'warm-lentil-walnut-stuffed-pears', snack: 'roasted-cauliflower-turmeric-hummus-cups', dinner: 'three-bean-chili' }, // Sun
+  ],
+  2: [ // Week 2
+    { breakfast: 'banana-butter-rice-cakes', lunch: 'three-bean-chili', snack: 'cottage-cheese-fresh-berries', dinner: 'spaghetti-turkey-meatballs' }, // Mon (Leftover chili)
+    { breakfast: 'hard-boiled-eggs-tomatoes', lunch: 'caprese-chickpea-salad', snack: 'muesli-almonds-dried-fruits', dinner: 'stuffed-bell-peppers' }, // Tue
+    { breakfast: 'overnight-oats-walnuts-raisins', lunch: 'tuna-white-bean-nicoise-salad', snack: 'warm-spinach-artichoke-white-bean-dip', dinner: 'hearty-lentil-soup' }, // Wed
+    { breakfast: 'english-muffin-almond-butter', lunch: 'hearty-lentil-soup', snack: 'herb-roasted-mushroom-thyme-tartlets', dinner: 'zesty-shrimp-bowl-cauliflower-rice' }, // Thu (Leftover soup)
+    { breakfast: 'smoothie-bowl-mixed-seeds', lunch: 'smoky-paprika-tofu-lettuce-wraps', snack: 'citrus-marinated-shrimp-skewers', dinner: 'curried-lentil-carrot-stew' }, // Fri
+    { breakfast: 'flaxseed-pancakes-blueberries', lunch: 'miso-scallion-soba-bowl', snack: 'pomegranate-walnut-endive-boats', dinner: 'lemon-herb-cod-asparagus' }, // Sat
+    { breakfast: 'chia-pudding-berries-coconut', lunch: 'greek-lentil-salad-cucumbers-feta', snack: 'cranberry-herb-goat-cheese-crostini', dinner: 'one-pan-chicken-root-veg' }, // Sun
+  ],
+  3: [ // Week 3
+    { breakfast: 'quinoa-black-bean-bowl', lunch: 'curried-lentil-carrot-stew', snack: 'greek-yogurt-honey-nuts', dinner: 'sweet-potato-black-bean-quesadilla' }, // Mon
+    { breakfast: 'salmon-avocado-bagel', lunch: 'sweet-potato-black-bean-quesadilla', snack: 'baked-apples-oat-pecan-crumble', dinner: 'chicken-stir-fry' }, // Tue
+    { breakfast: 'buckwheat-porridge-almond-butter', lunch: 'heirloom-tomato-white-bean-bruschetta', snack: 'toast-hummus-avocado', dinner: 'sheet-pan-salmon-broccoli' }, // Wed
+    { breakfast: 'egg-spinach-breakfast-wrap', lunch: 'warm-farro-salad-roasted-vegetables', snack: 'poached-salmon-cucumber-rounds', dinner: 'turkey-pepper-skillet' }, // Thu
+    { breakfast: 'spiced-pumpkin-buddha-bowl', lunch: 'turkey-apple-arugula-panini', snack: 'maple-glazed-acorn-squash', dinner: 'black-bean-burgers' }, // Fri
+    { breakfast: 'lentil-spinach-scramble', lunch: 'grilled-pear-walnut-gorgonzola-salad', snack: 'cottage-cheese-fresh-berries', dinner: 'stuffed-bell-peppers' }, // Sat
+    { breakfast: 'maple-glazed-acorn-squash', lunch: 'herbed-lentil-salad-lettuce-cups', snack: 'roasted-cauliflower-turmeric-hummus-cups', dinner: 'three-bean-chili' }, // Sun
+  ],
+  4: [ // Week 4
+    { breakfast: 'avocado-toast-whole-grain', lunch: 'three-bean-chili', snack: 'banana-butter-rice-cakes', dinner: 'spaghetti-turkey-meatballs' }, // Mon
+    { breakfast: 'greek-yogurt-honey-nuts', lunch: 'warm-barley-mushroom-pilaf-spinach', snack: 'citrus-roasted-beet-arugula-bites', dinner: 'zesty-shrimp-bowl-cauliflower-rice' }, // Tue
+    { breakfast: 'instant-oatmeal-flaxseed', lunch: 'avocado-white-bean-sandwich', snack: 'herb-roasted-mushroom-thyme-tartlets', dinner: 'lemon-herb-cod-asparagus' }, // Wed
+    { breakfast: 'hard-boiled-eggs-tomatoes', lunch: 'roasted-beet-orange-goat-cheese-salad', snack: 'baked-brie-apple-rosemary', dinner: 'one-pan-chicken-root-veg' }, // Thu
+    { breakfast: 'spinach-almond-milk-smoothie', lunch: 'lemon-tahini-chickpea-salad-bowl', snack: 'maple-glazed-sweet-potato-rounds', dinner: 'hearty-lentil-soup' }, // Fri
+    { breakfast: 'baked-oatmeal-cinnamon-apples', lunch: 'hearty-lentil-soup', snack: 'warm-spinach-artichoke-white-bean-dip', dinner: 'chicken-stir-fry' }, // Sat
+    { breakfast: 'egg-frittata-whole-grain-toast', lunch: 'grilled-vegetable-pesto-farro-bowl', snack: 'pomegranate-walnut-endive-boats', dinner: 'turkey-pepper-skillet' }, // Sun
+  ]
 };

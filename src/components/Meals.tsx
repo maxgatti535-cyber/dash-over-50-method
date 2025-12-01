@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
-import { recipes, DayPlan, Recipe, recipeDataVersion } from './mealData';
+import { recipes, DayPlan, Recipe, recipeDataVersion, weeklyPlans } from './mealData';
 import { getLocalStorageItem, setLocalStorageItem } from './utils';
 
 // --- TYPES ---
@@ -112,14 +111,22 @@ const MealPlan: React.FC<MealPlanProps> = ({ onNavigateToCoach }) => {
 
             if (!validPlan) {
                 const newMonthLocks = Array(4).fill(Array(7).fill([false, false, false, false]));
-                const newMonthPlan: DayPlan[][] = [];
-                let usedIds: string[] = [];
 
-                for (let w = 0; w < 4; w++) {
-                    const week = generateWeekPlan(null, null, usedIds);
-                    newMonthPlan.push(week);
-                    // Collect used IDs to avoid repetition across weeks if possible
-                    week.forEach(d => usedIds.push(...Object.values(d)));
+                // Use PRE-DEFINED weekly plans if available
+                const newMonthPlan: DayPlan[][] = [];
+                if (weeklyPlans && weeklyPlans[1]) {
+                    newMonthPlan.push(weeklyPlans[1]);
+                    newMonthPlan.push(weeklyPlans[2] || generateWeekPlan(null, null));
+                    newMonthPlan.push(weeklyPlans[3] || generateWeekPlan(null, null));
+                    newMonthPlan.push(weeklyPlans[4] || generateWeekPlan(null, null));
+                } else {
+                    // Fallback to random generation if weeklyPlans is missing
+                    let usedIds: string[] = [];
+                    for (let w = 0; w < 4; w++) {
+                        const week = generateWeekPlan(null, null, usedIds);
+                        newMonthPlan.push(week);
+                        week.forEach(d => usedIds.push(...Object.values(d)));
+                    }
                 }
 
                 setMonthPlan(newMonthPlan);
@@ -133,7 +140,15 @@ const MealPlan: React.FC<MealPlanProps> = ({ onNavigateToCoach }) => {
             // Fallback to fresh start on error
             const newMonthLocks = Array(4).fill(Array(7).fill([false, false, false, false]));
             const newMonthPlan: DayPlan[][] = [];
-            for (let w = 0; w < 4; w++) newMonthPlan.push(generateWeekPlan(null, null));
+            // Try to use weeklyPlans even in error fallback
+            if (weeklyPlans && weeklyPlans[1]) {
+                newMonthPlan.push(weeklyPlans[1]);
+                newMonthPlan.push(weeklyPlans[2]);
+                newMonthPlan.push(weeklyPlans[3]);
+                newMonthPlan.push(weeklyPlans[4]);
+            } else {
+                for (let w = 0; w < 4; w++) newMonthPlan.push(generateWeekPlan(null, null));
+            }
 
             setMonthPlan(newMonthPlan);
             setMonthLocks(newMonthLocks);
