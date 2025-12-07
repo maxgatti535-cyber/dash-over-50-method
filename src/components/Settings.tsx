@@ -444,10 +444,10 @@ const Settings: React.FC<{ setScreen: (screen: string) => void }> = ({ setScreen
             <span className="text-slate-400" aria-hidden="true">•</span>
             <button onClick={() => setScreen('terms')} className="text-lg text-accentBlue hover:underline bg-transparent border-none p-0 cursor-pointer">Terms</button>
             <span className="text-slate-400" aria-hidden="true">•</span>
-            <a href="mailto:support@example.com" className="text-lg text-accentBlue hover:underline">Contact</a>
+            <a href="mailto:help@dashover50.com" className="text-lg text-accentBlue hover:underline">Contact</a>
           </div>
           <p className="text-base text-textMuted pt-2">DASH Over 50 METHOD™ · v0.1</p>
-          <p className="text-sm text-textMuted">© 2025 DASH Over 50 METHOD™</p>
+          <p className="text-sm text-textMuted">© 2025 app.dashover50.com</p>
         </div>
       </SettingsCard>
 

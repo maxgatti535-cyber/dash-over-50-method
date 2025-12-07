@@ -6,7 +6,7 @@ interface FooterProps {
 
 const Footer: React.FC<FooterProps> = ({ setScreen }) => {
   return (
-    <footer 
+    <footer
       className="bg-surface border-t border-brandPrimaryDark w-full px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))]"
       aria-label="App footer"
     >
@@ -26,10 +26,13 @@ const Footer: React.FC<FooterProps> = ({ setScreen }) => {
             Terms
           </button>
           <span className="text-brandPrimary text-sm" aria-hidden="true">•</span>
-          <a href="mailto:support@example.com" target="_blank" rel="noopener noreferrer" className="text-sm text-brandPrimary hover:underline active:underline focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brandPrimary rounded-sm">
+          <a href="mailto:help@dashover50.com" target="_blank" rel="noopener noreferrer" className="text-sm text-brandPrimary hover:underline active:underline focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brandPrimary rounded-sm">
             Contact
           </a>
         </div>
+        <p className="text-xs text-brandPrimary/60 mt-2">
+          © 2025 app.dashover50.com
+        </p>
       </div>
     </footer>
   );
