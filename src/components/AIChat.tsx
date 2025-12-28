@@ -241,6 +241,8 @@ Be actionable and concrete — always include a practical suggestion.
 Use the user profile actively — reference their targets like sodium, activity, preferences.
 Include a brief disclaimer if answering medical or drug-related topics.`;
 
+      const personalizedSystemPrompt = SHORT_SYSTEM_PROMPT;
+
       const apiKey = import.meta.env.VITE_GOOGLE_API_KEY;
       if (!apiKey) {
         const errorMessage = { text: '⚠️ API key mancante. Controlla le impostazioni di sicurezza.', sender: 'ai' };
