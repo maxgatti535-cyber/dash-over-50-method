@@ -3,7 +3,7 @@ dist
 .DS_Store
 *.log
 *.pem
-.env
+# .env
 .env.local
 .env.*.local
 .vscode
@@ -11,3 +11,4 @@ dist
 *.swp
 *.swo
 *~
+.vercel

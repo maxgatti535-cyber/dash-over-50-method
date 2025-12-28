@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { getLocalStorageItem, markdownToHtml } from './utils';
+import { Send, Mic, Volume2, VolumeX, StopCircle, Loader2 } from 'lucide-react';
 
 interface AICoachProps {
   initialPrompt?: string;
@@ -21,8 +22,14 @@ const AICoach: React.FC<AICoachProps> = ({ initialPrompt, clearInitialPrompt }) 
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [activeQuickActions, setActiveQuickActions] = useState<string[]>([]);
+  const [isListening, setIsListening] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+
   const chatEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const startInputRef = useRef(''); // Store input value when listening starts
+  const recognitionRef = useRef<any>(null);
+  const synthRef = useRef<SpeechSynthesis>(window.speechSynthesis);
 
   useEffect(() => {
     const updateQuickActions = () => {
@@ -44,8 +51,41 @@ const AICoach: React.FC<AICoachProps> = ({ initialPrompt, clearInitialPrompt }) 
     updateQuickActions();
     window.addEventListener('settings-changed', updateQuickActions);
 
+    // Initialize Speech Recognition
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = true; // Enable continuous listening
+      recognitionRef.current.interimResults = true; // Enable real-time feedback
+      recognitionRef.current.lang = 'en-US'; // Default to English
+
+      recognitionRef.current.onresult = (event: any) => {
+        let transcript = '';
+        for (let i = 0; i < event.results.length; i++) {
+          transcript += event.results[i][0].transcript;
+        }
+
+        // Combine with the input we had before we started listening
+        const prefix = startInputRef.current;
+        const separator = prefix && transcript ? ' ' : '';
+        setInput(prefix + separator + transcript);
+      };
+
+      recognitionRef.current.onerror = (event: any) => {
+        console.error('Speech recognition error', event.error);
+        setIsListening(false);
+      };
+
+      recognitionRef.current.onend = () => {
+        setIsListening(false);
+      };
+    }
+
     return () => {
       window.removeEventListener('settings-changed', updateQuickActions);
+      if (isSpeaking) {
+        synthRef.current.cancel();
+      }
     };
   }, []);
 
@@ -55,11 +95,57 @@ const AICoach: React.FC<AICoachProps> = ({ initialPrompt, clearInitialPrompt }) 
 
   useEffect(() => {
     if (initialPrompt) {
-      // Automatically send the message if it comes from a navigation action
       sendMessage(initialPrompt);
       if (clearInitialPrompt) clearInitialPrompt();
     }
   }, [initialPrompt]);
+
+  const toggleListening = () => {
+    if (!recognitionRef.current) {
+      alert("Speech recognition is not supported in this browser.");
+      return;
+    }
+
+    if (isListening) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+    } else {
+      startInputRef.current = input; // Capture current input before starting
+      recognitionRef.current.start();
+      setIsListening(true);
+    }
+  };
+
+  const speakText = (text: string) => {
+    if (isSpeaking) {
+      synthRef.current.cancel();
+      setIsSpeaking(false);
+      return;
+    }
+
+    // Strip markdown for cleaner speech
+    const cleanText = text.replace(/[*#_]/g, '');
+
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.lang = 'en-US'; // Default to English
+
+    // Try to find a more natural/human-sounding voice
+    const voices = window.speechSynthesis.getVoices();
+    const preferredVoice = voices.find(voice =>
+      (voice.name.includes('Google') && voice.lang.startsWith('en')) ||
+      (voice.name.includes('Natural') && voice.lang.startsWith('en')) ||
+      (voice.lang === 'en-US')
+    );
+
+    if (preferredVoice) {
+      utterance.voice = preferredVoice;
+    }
+
+    utterance.onend = () => setIsSpeaking(false);
+
+    setIsSpeaking(true);
+    synthRef.current.speak(utterance);
+  };
 
   const addBPContext = () => {
     let readings = getLocalStorageItem<any[]>('dash_bp_readings', []);
@@ -92,7 +178,6 @@ const AICoach: React.FC<AICoachProps> = ({ initialPrompt, clearInitialPrompt }) 
     let success = false;
 
     try {
-      // Gather user profile data
       const profile = {
         name: getLocalStorageItem('profile.name', ''),
         age: getLocalStorageItem('profile.age', ''),
@@ -108,7 +193,6 @@ const AICoach: React.FC<AICoachProps> = ({ initialPrompt, clearInitialPrompt }) 
       };
       const medications: any[] = getLocalStorageItem('dash_medications_v2', []);
 
-      // Build context string
       let contextString = `\n\n--- USER PROFILE & CONTEXT ---\n`;
       if (profile.name) contextString += `Name: ${profile.name}\n`;
       if (profile.age) contextString += `Age: ${profile.age}\n`;
@@ -157,40 +241,21 @@ Be actionable and concrete — always include a practical suggestion.
 Use the user profile actively — reference their targets like sodium, activity, preferences.
 Include a brief disclaimer if answering medical or drug-related topics.`;
 
-      const personalizedSystemPrompt = SHORT_SYSTEM_PROMPT;
-
       const apiKey = import.meta.env.VITE_GOOGLE_API_KEY;
-      console.log('DEBUG: API Key present?', !!apiKey, apiKey ? `Length: ${apiKey.length}` : 'Missing');
       if (!apiKey) {
-        const errorMessage = { text: '⚠️ API key per Gemini non configurata. Aggiungi VITE_GOOGLE_API_KEY al file .env nella radice del progetto.', sender: 'ai' };
+        const errorMessage = { text: '⚠️ API key mancante. Controlla le impostazioni di sicurezza.', sender: 'ai' };
         setMessages(prev => [...prev, errorMessage]);
         return false;
       }
 
-      const ai = new GoogleGenerativeAI(apiKey);
+      // Inizializza Gemini direttamente
+      const genAI = new GoogleGenerativeAI(apiKey);
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
       const fullPrompt = `${personalizedSystemPrompt}\n\n${contextString}\n\n${messageText}`;
-      const modelsToTry = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
-      console.log('AIChat attempting models:', modelsToTry);
 
-      let responseText: string | undefined;
-      for (const modelName of modelsToTry) {
-        try {
-          const model = ai.getGenerativeModel({ model: modelName });
-          const result = await model.generateContent(fullPrompt);
-          const text = result.response?.text?.();
-          if (text) {
-            console.log(`Model ${modelName} succeeded.`);
-            responseText = text;
-            break;
-          }
-        } catch (e) {
-          console.warn(`Model ${modelName} failed:`, e);
-        }
-      }
-
-      if (!responseText) {
-        throw new Error('All models failed to generate a response.');
-      }
+      const result = await model.generateContent(fullPrompt);
+      const responseText = result.response.text();
 
       const aiMessage = { text: responseText, sender: 'ai' };
       setMessages(prev => [...prev, aiMessage]);
@@ -198,7 +263,10 @@ Include a brief disclaimer if answering medical or drug-related topics.`;
     } catch (error) {
       console.error('Gemini API error:', error);
       let errorMessageText = "Sorry, I'm having trouble connecting right now. Please try again later.";
+
+      let errorDetails = "Unknown error";
       if (error instanceof Error) {
+        errorDetails = error.message;
         const lower = error.message.toLowerCase();
         if (lower.includes('permission') || lower.includes('denied')) {
           errorMessageText = "It looks like there's a permission issue with the AI service. Please contact support.";
@@ -210,10 +278,17 @@ Include a brief disclaimer if answering medical or drug-related topics.`;
           errorMessageText = "System Error: API Key configuration is missing. Please check your environment settings.";
         }
       }
+
+      // Aggiungi dettagli tecnici per debug
+      errorMessageText += ` (Error: ${errorDetails})`;
+
       const errorMessage = { text: errorMessageText, sender: 'ai' };
       setMessages(prev => [...prev, errorMessage]);
     } finally {
       setLoading(false);
+      // Ensure loading flag is cleared even after unexpected errors
+      setIsListening(false);
+      setIsSpeaking(false);
     }
     return success;
   };
@@ -230,8 +305,9 @@ Include a brief disclaimer if answering medical or drug-related topics.`;
     }
   };
 
-  const handleQuickAction = (text: string) => {
-    sendMessage(text);
+  const handleQuickAction = (action: string) => {
+    const prompt = quickActionMap[action as keyof typeof quickActionMap] || action;
+    sendMessage(prompt);
   };
 
   return (
@@ -241,6 +317,16 @@ Include a brief disclaimer if answering medical or drug-related topics.`;
           <div key={index} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div className={`p-3 rounded-2xl max-w-xs md:max-w-md shadow-sm ${msg.sender === 'user' ? 'bg-brandPrimary text-white rounded-br-none' : 'bg-brandPrimaryTint text-textPrimary rounded-bl-none'}`}>
               <div className="prose text-lg" dangerouslySetInnerHTML={{ __html: markdownToHtml(msg.text) }}></div>
+              {msg.sender === 'ai' && (
+                <button
+                  onClick={() => speakText(msg.text)}
+                  className="mt-2 text-brandPrimary/70 hover:text-brandPrimary transition-colors flex items-center gap-1 text-sm"
+                  title="Read aloud"
+                >
+                  {isSpeaking ? <VolumeX size={16} /> : <Volume2 size={16} />}
+                  {isSpeaking ? 'Stop' : 'Listen'}
+                </button>
+              )}
             </div>
           </div>
         ))}
@@ -271,6 +357,16 @@ Include a brief disclaimer if answering medical or drug-related topics.`;
           ))}
         </div>
         <div className="flex items-center space-x-2">
+          <button
+            onClick={toggleListening}
+            className={`p-3 rounded-full transition-colors ${isListening
+              ? 'bg-red-100 text-red-600 animate-pulse border border-red-200'
+              : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200'
+              }`}
+            title="Speak now"
+          >
+            {isListening ? <StopCircle size={24} /> : <Mic size={24} />}
+          </button>
           <input
             ref={inputRef}
             type="text"
@@ -278,11 +374,11 @@ Include a brief disclaimer if answering medical or drug-related topics.`;
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleSend()}
             className="flex-grow p-3 border border-border bg-surface rounded-lg h-12 text-lg focus:border-transparent focus:ring-2 focus:ring-brandPrimary"
-            placeholder="Type your message..."
+            placeholder={isListening ? "Listening..." : "Type or speak..."}
             disabled={loading}
           />
           <button onClick={handleSend} disabled={loading || !input.trim()} className="bg-brandPrimary text-white rounded-full h-12 w-12 flex items-center justify-center flex-shrink-0 disabled:bg-textMuted transition-colors" aria-label="Send message">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
+            {loading ? <Loader2 className="animate-spin" size={24} /> : <Send size={24} />}
           </button>
         </div>
       </div>
