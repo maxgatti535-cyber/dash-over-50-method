@@ -250,29 +250,19 @@ Include a brief disclaimer if answering medical or drug-related topics.`;
         return false;
       }
 
-      // Inizializza Gemini con sistema di fallback
+      // Log di debug (mostra solo l'inizio della chiave per sicurezza)
+      console.log("Controllo API Key:", apiKey ? apiKey.substring(0, 6) + "..." : "NON TROVATA");
+
       const genAI = new GoogleGenerativeAI(apiKey);
-      const modelsToTry = ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-pro"];
-      let lastError: any = null;
-      let responseText = "";
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
       const fullPrompt = `${personalizedSystemPrompt}\n\n${contextString}\n\n${messageText}`;
 
-      for (const modelName of modelsToTry) {
-        try {
-          const model = genAI.getGenerativeModel({ model: modelName });
-          const result = await model.generateContent(fullPrompt);
-          responseText = result.response.text();
-          if (responseText) break;
-        } catch (e: any) {
-          lastError = e;
-          // Se la chiave è invalida o scaduta, fermiamoci subito
-          if (e.message?.includes('key') || e.message?.includes('401')) break;
-        }
-      }
+      const result = await model.generateContent(fullPrompt);
+      const responseText = result.response.text();
 
       if (!responseText) {
-        throw lastError || new Error("Nessun modello disponibile");
+        throw new Error("L'AI ha risposto con un testo vuoto.");
       }
 
       const aiMessage = { text: responseText, sender: 'ai' };
@@ -281,8 +271,9 @@ Include a brief disclaimer if answering medical or drug-related topics.`;
     } catch (error) {
       console.error('Gemini API error:', error);
       const errorMsg = error instanceof Error ? error.message : "Errore sconosciuto";
+
       const errorMessage = {
-        text: `⚠️ Errore AI: ${errorMsg}. Verifica la chiave su GitHub Secrets.`,
+        text: `⚠️ Errore Coach: ${errorMsg}. Se vedi '404', Google non riconosce la chiave o il modello in questa regione.`,
         sender: 'ai'
       };
       setMessages(prev => [...prev, errorMessage]);
