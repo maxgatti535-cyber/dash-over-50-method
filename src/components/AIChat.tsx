@@ -251,50 +251,51 @@ Include a brief disclaimer if answering medical or drug-related topics.`;
       }
 
       // Log di debug
-      console.log("Debug - Usando chiave:", apiKey ? apiKey.substring(0, 6) + "..." : "VUOTA");
+      console.log("Debug v2.1 - Usando chiave:", apiKey ? apiKey.substring(0, 6) + "..." : "VUOTA");
 
       const fullPrompt = `${personalizedSystemPrompt}\n\n${contextString}\n\n${messageText}`;
 
-      // Diagnostica: Elenca i modelli disponibili nella console
-      fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`)
-        .then(r => r.json())
-        .then(d => console.log("Modelli disponibili per questa chiave:", d))
-        .catch(e => console.error("Errore elenco modelli:", e));
+      // 1. Chiediamo a Google quali modelli possiamo usare
+      const listModelsUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`;
+      const listResponse = await fetch(listModelsUrl);
+      const listData = await listResponse.json();
 
-      // Proviamo i nomi più comuni uno dopo l'altro
-      const modelsToTry = ["gemini-1.5-flash", "gemini-pro", "gemini-1.5-pro"];
-      let responseText = "";
-      let lastError: any = null;
+      console.log("Modelli ricevuti da Google:", listData);
 
-      for (const modelName of modelsToTry) {
-        try {
-          console.log(`Tentativo REST con: ${modelName}`);
-          const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+      // 2. Cerchiamo un modello valido (preferibilmente flash o pro)
+      const availableModels = listData.models || [];
+      const bestModel = availableModels.find((m: any) => m.name.includes("gemini-1.5-flash"))
+        || availableModels.find((m: any) => m.name.includes("gemini-pro"))
+        || availableModels.find((m: any) => m.supportedGenerationMethods.includes("generateContent"));
 
-          const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [{ parts: [{ text: fullPrompt }] }]
-            })
-          });
-
-          const data = await response.json();
-          if (response.ok && data.candidates?.[0]?.content?.parts?.[0]?.text) {
-            responseText = data.candidates[0].content.parts[0].text;
-            console.log(`Successo con modello: ${modelName}`);
-            break;
-          } else {
-            console.warn(`Fallito ${modelName}:`, data.error?.message || "Risposta non valida");
-            lastError = new Error(data.error?.message || `Errore HTTP ${response.status}`);
-          }
-        } catch (e) {
-          lastError = e;
-        }
+      if (!bestModel) {
+        throw new Error("Nessun modello Gemini trovato per questa chiave. Verifica di aver creato la chiave su AI Studio.");
       }
 
+      const modelName = bestModel.name; // Questo includerà già il prefisso "models/"
+      console.log(`Usando il miglior modello rilevato: ${modelName}`);
+
+      // 3. Facciamo la chiamata col modello trovato
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/${modelName}:generateContent?key=${apiKey}`;
+
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: fullPrompt }] }]
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error?.message || `Errore Google: ${response.status}`);
+      }
+
+      const responseText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
       if (!responseText) {
-        throw lastError || new Error("Nessun modello ha risposto.");
+        throw new Error("Risposta vuota da Google. Controlla i crediti/quoti.");
       }
 
       const aiMessage = { text: responseText, sender: 'ai' };
@@ -305,7 +306,7 @@ Include a brief disclaimer if answering medical or drug-related topics.`;
       const errorMsg = error instanceof Error ? error.message : "Errore ignoto";
 
       const errorMessage = {
-        text: `⚠️ Errore Coach: ${errorMsg}. Controlla la console (F12) per la lista dei modelli.`,
+        text: `⚠️ Errore Coach: ${errorMsg}`,
         sender: 'ai'
       };
       setMessages(prev => [...prev, errorMessage]);
