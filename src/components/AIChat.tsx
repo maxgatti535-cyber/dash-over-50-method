@@ -252,7 +252,7 @@ Include a brief disclaimer if answering medical or drug-related topics.`;
 
       // Inizializza Gemini con sistema di fallback
       const genAI = new GoogleGenerativeAI(apiKey);
-      const modelsToTry = ["gemini-1.5-flash-latest", "gemini-1.5-flash", "gemini-pro", "gemini-1.0-pro"];
+      const modelsToTry = ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-pro"];
       let lastError: any = null;
       let responseText = "";
 
@@ -260,18 +260,14 @@ Include a brief disclaimer if answering medical or drug-related topics.`;
 
       for (const modelName of modelsToTry) {
         try {
-          console.log(`Tentativo con modello: ${modelName}`);
           const model = genAI.getGenerativeModel({ model: modelName });
           const result = await model.generateContent(fullPrompt);
           responseText = result.response.text();
-          if (responseText) break; // Successo!
+          if (responseText) break;
         } catch (e: any) {
           lastError = e;
-          console.warn(`Modello ${modelName} fallito:`, e.message);
-          // Se l'errore non è un 404 (es. chiave scaduta), inutile provare gli altri
-          if (!e.message?.includes('404') && !e.message?.includes('not found')) {
-            break;
-          }
+          // Se la chiave è invalida o scaduta, fermiamoci subito
+          if (e.message?.includes('key') || e.message?.includes('401')) break;
         }
       }
 
@@ -284,27 +280,11 @@ Include a brief disclaimer if answering medical or drug-related topics.`;
       success = true;
     } catch (error) {
       console.error('Gemini API error:', error);
-      let errorMessageText = "Sorry, I'm having trouble connecting right now. Please try again later.";
-
-      let errorDetails = "Unknown error";
-      if (error instanceof Error) {
-        errorDetails = error.message;
-        const lower = error.message.toLowerCase();
-        if (lower.includes('permission') || lower.includes('denied')) {
-          errorMessageText = "It looks like there's a permission issue with the AI service. Please contact support.";
-        } else if (lower.includes('quota')) {
-          errorMessageText = "The AI service usage limit has been reached. Please try again later.";
-        } else if (lower.includes('model') && (lower.includes('not found') || lower.includes('unavailable'))) {
-          errorMessageText = "The AI model is currently unavailable. Please try again later.";
-        } else if (lower.includes('api key')) {
-          errorMessageText = "System Error: API Key configuration is missing. Please check your environment settings.";
-        }
-      }
-
-      // Aggiungi dettagli tecnici per debug
-      errorMessageText += ` (Error: ${errorDetails})`;
-
-      const errorMessage = { text: errorMessageText, sender: 'ai' };
+      const errorMsg = error instanceof Error ? error.message : "Errore sconosciuto";
+      const errorMessage = {
+        text: `⚠️ Errore AI: ${errorMsg}. Verifica la chiave su GitHub Secrets.`,
+        sender: 'ai'
+      };
       setMessages(prev => [...prev, errorMessage]);
     } finally {
       setLoading(false);
