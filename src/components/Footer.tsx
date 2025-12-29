@@ -7,7 +7,7 @@ interface FooterProps {
 const Footer: React.FC<FooterProps> = ({ setScreen }) => {
   return (
     <footer
-      className="bg-surface border-t border-brandPrimaryDark w-full px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))]"
+      className="glass-panel border-t border-white/50 w-full px-4 pt-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] premium-shadow mt-auto"
       aria-label="App footer"
     >
       <div className="max-w-[430px] mx-auto text-center space-y-2">

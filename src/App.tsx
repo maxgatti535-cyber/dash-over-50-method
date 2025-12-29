@@ -144,27 +144,30 @@ const App: React.FC = () => {
 
       if (screen === 'home') {
         return (
-          <div className="space-y-4">
-            <h1 className="text-2xl font-bold text-textPrimary px-2 pb-2">Welcome!</h1>
-            {menuItems.map(({ id, title, description, Icon }) => (
-              <button
-                key={id}
-                onClick={() => setScreen(id)}
-                className="w-full bg-surface p-5 rounded-xl shadow-sm shadow-shadowSoft border border-brandPrimaryDark flex items-center space-x-4 text-left hover:bg-brandPrimaryTint/50 hover:shadow-md active:shadow-lg active:border-brandPrimary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brandPrimary transition-all group active:scale-[.98] transform"
-                aria-label={`Go to ${title}`}
-              >
-                <div className="flex-shrink-0 w-11 h-11 bg-brandPrimaryTint rounded-full flex items-center justify-center transition-colors group-hover:bg-brandAccent/50 shadow-sm">
-                  <Icon />
-                </div>
-                <div className="flex-grow">
-                  <p className="font-semibold text-textPrimary text-lg">{title}</p>
-                  <p className="text-textMuted text-textSecondary text-[15px] leading-relaxed">{description}</p>
-                </div>
-                <div className="flex-shrink-0">
-                  <ChevronRightIcon />
-                </div>
-              </button>
-            ))}
+          <div className="space-y-4 pb-8">
+            <h1 className="text-3xl font-bold gradient-text px-2 pb-2">Welcome!</h1>
+            <div className="grid grid-cols-1 gap-4">
+              {menuItems.map(({ id, title, description, Icon }) => (
+                <button
+                  key={id}
+                  onClick={() => setScreen(id)}
+                  className="w-full glass-panel p-5 rounded-2xl premium-shadow flex items-center space-x-4 text-left hover:bg-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 group relative overflow-hidden"
+                  aria-label={`Go to ${title}`}
+                >
+                  <div className="absolute top-0 left-0 w-1 h-full bg-brandPrimary opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-brandPrimaryTint to-brandAccent/30 rounded-2xl flex items-center justify-center transition-all duration-300 group-hover:rotate-6 shadow-sm">
+                    <Icon />
+                  </div>
+                  <div className="flex-grow">
+                    <p className="font-bold text-textPrimary text-lg group-hover:text-brandPrimary transition-colors">{title}</p>
+                    <p className="text-textSecondary text-[14px] leading-tight opacity-80">{description}</p>
+                  </div>
+                  <div className="flex-shrink-0 text-brandPrimary/40 group-hover:text-brandPrimary group-hover:translate-x-1 transition-all">
+                    <ChevronRightIcon />
+                  </div>
+                </button>
+              ))}
+            </div>
           </div>
         );
       }
@@ -189,7 +192,7 @@ const App: React.FC = () => {
 
 
   return (
-    <div className="bg-creamBg max-w-[430px] mx-auto min-h-screen flex flex-col font-sans text-textPrimary leading-relaxed shadow-2xl">
+    <div className="bg-transparent max-w-[430px] mx-auto min-h-screen flex flex-col font-sans text-textPrimary leading-relaxed shadow-[0_0_50px_rgba(0,0,0,0.1)] relative">
       <Header screen={screen} setScreen={setScreen} title={screenTitle} />
 
       <main className="flex-grow px-4 pt-4 pb-20">
