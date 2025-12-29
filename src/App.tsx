@@ -56,6 +56,24 @@ const applyGlobalSettings = () => {
     } else {
       root.classList.remove('reduce-motion');
     }
+
+    // Theme (Light/Dark/System)
+    root.classList.remove('dark-theme', 'light-theme');
+    const themeSetting = getLocalStorageItem<'light' | 'dark' | 'system'>('display.theme', 'light');
+    if (themeSetting === 'dark') {
+      root.classList.add('dark-theme');
+    } else if (themeSetting === 'light') {
+      root.classList.add('light-theme');
+    }
+    // For 'system', we let the CSS media query handling in index.css do its work via :root:not(.light-theme) or similar logic if needed, 
+    // but the safest is to explicitly add dark-theme if system is dark.
+    if (themeSetting === 'system') {
+      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        root.classList.add('dark-theme');
+      } else {
+        root.classList.add('light-theme');
+      }
+    }
   } catch (e) {
     console.warn("Failed to apply global settings:", e);
   }

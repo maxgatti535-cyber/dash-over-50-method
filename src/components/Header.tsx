@@ -88,7 +88,7 @@ const Header: React.FC<HeaderProps> = ({ screen, setScreen, title }) => {
 
   return (
     <header
-      className={`sticky top-0 z-20 px-4 glass-panel border-b border-white/40 premium-shadow ${isDark ? 'bg-brandPrimaryDark/90 text-white' : 'text-textPrimary'}`}
+      className={`sticky top-0 z-20 px-4 border-b border-white/10 premium-shadow transition-colors duration-300 ${isDark ? 'glass-panel-dark text-white' : 'glass-panel text-textPrimary'}`}
       style={{ paddingTop: `env(safe-area-inset-top)` }}
     >
       <div className="h-16 flex items-center justify-between">

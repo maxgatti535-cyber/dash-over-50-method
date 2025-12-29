@@ -23,6 +23,12 @@ const AICoach: React.FC<AICoachProps> = ({ initialPrompt, clearInitialPrompt }) 
   const [activeQuickActions, setActiveQuickActions] = useState<string[]>([]);
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isDark, setIsDark] = useState(() => {
+    const setting = getLocalStorageItem<'light' | 'dark' | 'system'>('display.theme', 'light');
+    if (setting === 'dark') return true;
+    if (setting === 'system') return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    return false;
+  });
 
   const chatEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -47,8 +53,27 @@ const AICoach: React.FC<AICoachProps> = ({ initialPrompt, clearInitialPrompt }) 
       setActiveQuickActions(enabledActions);
     };
 
+    const updateTheme = () => {
+      const setting = getLocalStorageItem<'light' | 'dark' | 'system'>('display.theme', 'light');
+      if (setting === 'dark') setIsDark(true);
+      else if (setting === 'system') setIsDark(window.matchMedia('(prefers-color-scheme: dark)').matches);
+      else setIsDark(false);
+    };
+
     updateQuickActions();
-    window.addEventListener('settings-changed', updateQuickActions);
+    updateTheme();
+    window.addEventListener('settings-changed', () => {
+      updateQuickActions();
+      updateTheme();
+    });
+
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleMediaChange = () => {
+      if (getLocalStorageItem('display.theme', 'light') === 'system') {
+        updateTheme();
+      }
+    };
+    mediaQuery.addEventListener('change', handleMediaChange);
 
     // Initialize Speech Recognition
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
@@ -341,8 +366,8 @@ Include a brief disclaimer if answering medical or drug-related topics.`;
             className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} message-appear`}
           >
             <div className={`p-4 rounded-3xl max-w-[85%] md:max-w-[75%] premium-shadow transition-all duration-300 ${msg.sender === 'user'
-              ? 'bg-gradient-to-br from-brandPrimary to-brandPrimaryDark text-white rounded-tr-none'
-              : 'glass-panel text-textPrimary rounded-tl-none border-l-4 border-brandPrimary'
+                ? 'bg-gradient-to-br from-brandPrimary to-brandPrimaryDark text-white rounded-tr-none'
+                : `${isDark ? 'glass-panel-dark text-white' : 'glass-panel text-textPrimary'} rounded-tl-none border-l-4 border-brandPrimary`
               }`}>
               <div
                 className={`prose ${msg.sender === 'user' ? 'prose-invert' : ''} text-lg leading-relaxed`}
@@ -365,7 +390,7 @@ Include a brief disclaimer if answering medical or drug-related topics.`;
 
         {loading && (
           <div className="flex justify-start message-appear">
-            <div className="p-4 rounded-3xl glass-panel rounded-tl-none border-l-4 border-brandPrimary flex items-center gap-2">
+            <div className={`p-4 rounded-3xl ${isDark ? 'glass-panel-dark' : 'glass-panel'} rounded-tl-none border-l-4 border-brandPrimary flex items-center gap-2`}>
               <div className="flex space-x-1">
                 <div className="w-2 h-2 bg-brandPrimary rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
                 <div className="w-2 h-2 bg-brandPrimary rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
@@ -378,7 +403,7 @@ Include a brief disclaimer if answering medical or drug-related topics.`;
       </div>
 
       {/* Area Input & Azioni */}
-      <div className="p-4 glass-panel border-t border-white/20 premium-shadow">
+      <div className={`p-4 border-t border-white/10 premium-shadow ${isDark ? 'glass-panel-dark' : 'glass-panel'}`}>
         <div className="pb-4">
           <button
             onClick={addBPContext}
