@@ -332,75 +332,109 @@ Include a brief disclaimer if answering medical or drug-related topics.`;
   };
 
   return (
-    <div className="flex flex-col bg-surface h-full">
-      <div className="flex-grow p-2 space-y-4 overflow-y-auto">
+    <div className="coach-container flex flex-col h-full bg-transparent overflow-hidden">
+      {/* Messaggi */}
+      <div className="flex-grow p-4 space-y-6 overflow-y-auto">
         {messages.map((msg, index) => (
-          <div key={index} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`p-3 rounded-2xl max-w-xs md:max-w-md shadow-sm ${msg.sender === 'user' ? 'bg-brandPrimary text-white rounded-br-none' : 'bg-brandPrimaryTint text-textPrimary rounded-bl-none'}`}>
-              <div className="prose text-lg" dangerouslySetInnerHTML={{ __html: markdownToHtml(msg.text) }}></div>
+          <div
+            key={index}
+            className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} message-appear`}
+          >
+            <div className={`p-4 rounded-3xl max-w-[85%] md:max-w-[75%] premium-shadow transition-all duration-300 ${msg.sender === 'user'
+                ? 'bg-gradient-to-br from-brandPrimary to-brandPrimaryDark text-white rounded-tr-none'
+                : 'glass-panel text-textPrimary rounded-tl-none border-l-4 border-brandPrimary'
+              }`}>
+              <div
+                className={`prose ${msg.sender === 'user' ? 'prose-invert' : ''} text-lg leading-relaxed`}
+                dangerouslySetInnerHTML={{ __html: markdownToHtml(msg.text) }}
+              ></div>
+
               {msg.sender === 'ai' && (
                 <button
                   onClick={() => speakText(msg.text)}
-                  className="mt-2 text-brandPrimary/70 hover:text-brandPrimary transition-colors flex items-center gap-1 text-sm"
+                  className="mt-3 text-brandPrimary hover:text-brandPrimaryDark transition-all flex items-center gap-2 text-sm font-medium bg-white/50 px-3 py-1 rounded-full border border-brandPrimary/10 shadow-sm"
                   title="Read aloud"
                 >
-                  {isSpeaking ? <VolumeX size={16} /> : <Volume2 size={16} />}
-                  {isSpeaking ? 'Stop' : 'Listen'}
+                  {isSpeaking ? <VolumeX size={18} className="animate-pulse" /> : <Volume2 size={18} />}
+                  <span>{isSpeaking ? 'Smetti di ascoltare' : 'Ascolta il Coach'}</span>
                 </button>
               )}
             </div>
           </div>
         ))}
+
         {loading && (
-          <div className="flex justify-start">
-            <div className="p-3 rounded-2xl bg-brandPrimaryTint text-textPrimary rounded-bl-none">
-              <span className="animate-pulse text-lg">● ● ●</span>
+          <div className="flex justify-start message-appear">
+            <div className="p-4 rounded-3xl glass-panel rounded-tl-none border-l-4 border-brandPrimary flex items-center gap-2">
+              <div className="flex space-x-1">
+                <div className="w-2 h-2 bg-brandPrimary rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                <div className="w-2 h-2 bg-brandPrimary rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                <div className="w-2 h-2 bg-brandPrimary rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+              </div>
             </div>
           </div>
         )}
         <div ref={chatEndRef} />
       </div>
 
-      <div className="p-2 bg-surface border-t border-border">
-        <div className="px-2 pb-2">
+      {/* Area Input & Azioni */}
+      <div className="p-4 glass-panel border-t border-white/20 premium-shadow">
+        <div className="pb-4">
           <button
             onClick={addBPContext}
-            className="w-full text-left text-accentBlue font-semibold text-lg py-2 px-3 rounded-lg border-2 border-dashed border-accentBlue hover:bg-accentBlue/10 transition-colors"
+            className="w-full text-brandPrimary font-bold text-center py-2.5 px-4 rounded-xl border-2 border-dashed border-brandPrimary/30 hover:border-brandPrimary hover:bg-brandPrimary/5 transition-all duration-300 flex items-center justify-center gap-2 group"
           >
-            + Include Recent BP Readings in Message
+            <span className="text-xl group-hover:scale-125 transition-transform">+</span>
+            Includi ultime misurazioni PRESSIONE
           </button>
         </div>
-        <div className="flex overflow-x-auto whitespace-nowrap gap-2 mb-3 pb-2">
+
+        {/* Azioni Rapide */}
+        <div className="flex overflow-x-auto whitespace-nowrap gap-3 mb-4 pb-2 no-scrollbar">
           {activeQuickActions.map(action => (
-            <button key={action} onClick={() => handleQuickAction(action)} className="flex-shrink-0 px-4 py-3 bg-brandPrimaryTint text-brandPrimary rounded-full text-base font-medium hover:bg-brandAccent/50 transition-colors min-h-[48px]">
+            <button
+              key={action}
+              onClick={() => handleQuickAction(action)}
+              className="px-5 py-2.5 bg-white/80 text-brandPrimary border border-brandPrimary/10 rounded-full text-base font-semibold hover:bg-brandPrimary hover:text-white hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5"
+            >
               {action}
             </button>
           ))}
         </div>
-        <div className="flex items-center space-x-2">
+
+        {/* Input area */}
+        <div className="flex items-center gap-3">
           <button
             onClick={toggleListening}
-            className={`p-3 rounded-full transition-colors ${isListening
-              ? 'bg-red-100 text-red-600 animate-pulse border border-red-200'
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200'
+            className={`p-4 rounded-2xl transition-all duration-300 flex-shrink-0 border-2 ${isListening
+                ? 'bg-red-500 text-white border-red-400 animate-pulse shadow-lg ring-4 ring-red-500/20'
+                : 'bg-white text-brandPrimary border-brandPrimary/5 hover:bg-brandPrimaryTint hover:border-brandPrimary/20 shadow-sm'
               }`}
-            title="Speak now"
+            title="Dilla voce"
           >
-            {isListening ? <StopCircle size={24} /> : <Mic size={24} />}
+            {isListening ? <StopCircle size={26} /> : <Mic size={26} />}
           </button>
-          <input
-            ref={inputRef}
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-            className="flex-grow p-3 border border-border bg-surface rounded-lg h-12 text-lg focus:border-transparent focus:ring-2 focus:ring-brandPrimary"
-            placeholder={isListening ? "Listening..." : "Type or speak..."}
-            disabled={loading}
-          />
-          <button onClick={handleSend} disabled={loading || !input.trim()} className="bg-brandPrimary text-white rounded-full h-12 w-12 flex items-center justify-center flex-shrink-0 disabled:bg-textMuted transition-colors" aria-label="Send message">
-            {loading ? <Loader2 className="animate-spin" size={24} /> : <Send size={24} />}
-          </button>
+
+          <div className="relative flex-grow">
+            <input
+              ref={inputRef}
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+              className="w-full p-4 pl-5 pr-12 bg-white/80 border border-brandPrimary/10 rounded-2xl h-14 text-lg focus:outline-none focus:ring-2 focus:ring-brandPrimary/30 focus:bg-white transition-all shadow-inner"
+              placeholder={isListening ? "Sto ascoltando..." : "Chiedi al Coach o scrivi..."}
+              disabled={loading}
+            />
+            <button
+              onClick={handleSend}
+              disabled={loading || !input.trim()}
+              className="absolute right-2 top-2 bg-brandPrimary text-white rounded-xl h-10 w-10 flex items-center justify-center disabled:opacity-30 disabled:grayscale transition-all hover:bg-brandPrimaryDark hover:scale-105 active:scale-95 shadow-md"
+              aria-label="Invia"
+            >
+              {loading ? <Loader2 className="animate-spin" size={20} /> : <Send size={20} />}
+            </button>
+          </div>
         </div>
       </div>
     </div>
