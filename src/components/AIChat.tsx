@@ -18,7 +18,7 @@ const quickActionMap = {
 type QuickActionKey = keyof typeof quickActionMap;
 
 const AICoach: React.FC<AICoachProps> = ({ initialPrompt, clearInitialPrompt }) => {
-  const [messages, setMessages] = useState([{ text: "Hello! I'm your DASH Coach (v2.0). How can I help you today?", sender: 'ai' }]);
+  const [messages, setMessages] = useState([{ text: "Hello! I'm your DASH Coach (v2.1 - PRONTO). How can I help you today?", sender: 'ai' }]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [activeQuickActions, setActiveQuickActions] = useState<string[]>([]);
