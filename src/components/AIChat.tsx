@@ -250,19 +250,32 @@ Include a brief disclaimer if answering medical or drug-related topics.`;
         return false;
       }
 
-      // Log di debug (mostra solo l'inizio della chiave per sicurezza)
-      console.log("Controllo API Key:", apiKey ? apiKey.substring(0, 6) + "..." : "NON TROVATA");
-
-      const genAI = new GoogleGenerativeAI(apiKey);
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      // Log di debug
+      console.log("Debug - Usando chiave:", apiKey ? apiKey.substring(0, 6) + "..." : "VUOTA");
 
       const fullPrompt = `${personalizedSystemPrompt}\n\n${contextString}\n\n${messageText}`;
 
-      const result = await model.generateContent(fullPrompt);
-      const responseText = result.response.text();
+      // Chiamata REST diretta alla V1 stabile (non beta)
+      const apiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: fullPrompt }] }]
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error?.message || `Errore HTTP ${response.status}`);
+      }
+
+      const responseText = data.candidates?.[0]?.content?.parts?.[0]?.text;
 
       if (!responseText) {
-        throw new Error("L'AI ha risposto con un testo vuoto.");
+        throw new Error("Risposta incompleta da Google");
       }
 
       const aiMessage = { text: responseText, sender: 'ai' };
@@ -270,10 +283,10 @@ Include a brief disclaimer if answering medical or drug-related topics.`;
       success = true;
     } catch (error) {
       console.error('Gemini API error:', error);
-      const errorMsg = error instanceof Error ? error.message : "Errore sconosciuto";
+      const errorMsg = error instanceof Error ? error.message : "Errore ignoto";
 
       const errorMessage = {
-        text: `⚠️ Errore Coach: ${errorMsg}. Se vedi '404', Google non riconosce la chiave o il modello in questa regione.`,
+        text: `⚠️ Errore Coach: ${errorMsg}.`,
         sender: 'ai'
       };
       setMessages(prev => [...prev, errorMessage]);
