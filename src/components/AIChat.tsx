@@ -250,14 +250,34 @@ Include a brief disclaimer if answering medical or drug-related topics.`;
         return false;
       }
 
-      // Inizializza Gemini direttamente
+      // Inizializza Gemini con sistema di fallback
       const genAI = new GoogleGenerativeAI(apiKey);
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+      const modelsToTry = ["gemini-1.5-flash-latest", "gemini-1.5-flash", "gemini-pro", "gemini-1.0-pro"];
+      let lastError: any = null;
+      let responseText = "";
 
       const fullPrompt = `${personalizedSystemPrompt}\n\n${contextString}\n\n${messageText}`;
 
-      const result = await model.generateContent(fullPrompt);
-      const responseText = result.response.text();
+      for (const modelName of modelsToTry) {
+        try {
+          console.log(`Tentativo con modello: ${modelName}`);
+          const model = genAI.getGenerativeModel({ model: modelName });
+          const result = await model.generateContent(fullPrompt);
+          responseText = result.response.text();
+          if (responseText) break; // Successo!
+        } catch (e: any) {
+          lastError = e;
+          console.warn(`Modello ${modelName} fallito:`, e.message);
+          // Se l'errore non è un 404 (es. chiave scaduta), inutile provare gli altri
+          if (!e.message?.includes('404') && !e.message?.includes('not found')) {
+            break;
+          }
+        }
+      }
+
+      if (!responseText) {
+        throw lastError || new Error("Nessun modello disponibile");
+      }
 
       const aiMessage = { text: responseText, sender: 'ai' };
       setMessages(prev => [...prev, aiMessage]);
