@@ -17,7 +17,7 @@ const quickActionMap = {
 type QuickActionKey = keyof typeof quickActionMap;
 
 const AICoach: React.FC<AICoachProps> = ({ initialPrompt, clearInitialPrompt }) => {
-  const [messages, setMessages] = useState([{ text: "Hello! I'm your DASH Coach (v2.2). How can I help you today?", sender: 'ai' }]);
+  const [messages, setMessages] = useState([{ text: "Hello! I'm your DASH Coach. How can I help you today?", sender: 'ai' }]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [activeQuickActions, setActiveQuickActions] = useState<string[]>([]);
@@ -248,9 +248,6 @@ Include a brief disclaimer if answering medical or drug-related topics.`;
         setMessages(prev => [...prev, errorMessage]);
         return false;
       }
-
-      // Log di debug
-      console.log("Debug v2.2 - Usando chiave:", apiKey ? apiKey.substring(0, 6) + "..." : "VUOTA");
 
       const fullPrompt = `${personalizedSystemPrompt}\n\n${contextString}\n\n${messageText}`;
 
