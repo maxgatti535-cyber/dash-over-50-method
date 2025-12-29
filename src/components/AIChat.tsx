@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { getLocalStorageItem, markdownToHtml } from './utils';
 import { Send, Mic, Volume2, VolumeX, StopCircle, Loader2 } from 'lucide-react';
 
@@ -18,7 +17,7 @@ const quickActionMap = {
 type QuickActionKey = keyof typeof quickActionMap;
 
 const AICoach: React.FC<AICoachProps> = ({ initialPrompt, clearInitialPrompt }) => {
-  const [messages, setMessages] = useState([{ text: "Hello! I'm your DASH Coach (v2.1 - PRONTO). How can I help you today?", sender: 'ai' }]);
+  const [messages, setMessages] = useState([{ text: "Hello! I'm your DASH Coach (v2.2). How can I help you today?", sender: 'ai' }]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [activeQuickActions, setActiveQuickActions] = useState<string[]>([]);
@@ -251,32 +250,32 @@ Include a brief disclaimer if answering medical or drug-related topics.`;
       }
 
       // Log di debug
-      console.log("Debug v2.1 - Usando chiave:", apiKey ? apiKey.substring(0, 6) + "..." : "VUOTA");
+      console.log("Debug v2.2 - Usando chiave:", apiKey ? apiKey.substring(0, 6) + "..." : "VUOTA");
 
       const fullPrompt = `${personalizedSystemPrompt}\n\n${contextString}\n\n${messageText}`;
 
       // 1. Chiediamo a Google quali modelli possiamo usare
-      const listModelsUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`;
+      const listModelsUrl = `https://generativelanguage.googleapis.com/v1/models?key=${apiKey}`;
       const listResponse = await fetch(listModelsUrl);
       const listData = await listResponse.json();
 
-      console.log("Modelli ricevuti da Google:", listData);
-
-      // 2. Cerchiamo un modello valido (preferibilmente flash o pro)
       const availableModels = listData.models || [];
-      const bestModel = availableModels.find((m: any) => m.name.includes("gemini-1.5-flash"))
-        || availableModels.find((m: any) => m.name.includes("gemini-pro"))
-        || availableModels.find((m: any) => m.supportedGenerationMethods.includes("generateContent"));
 
-      if (!bestModel) {
-        throw new Error("Nessun modello Gemini trovato per questa chiave. Verifica di aver creato la chiave su AI Studio.");
+      // 2. Cerchiamo gemini-1.5-flash (il più robusto per piano gratuito)
+      let selectedModel = availableModels.find((m: any) => m.name === "models/gemini-1.5-flash")
+        || availableModels.find((m: any) => m.name.includes("gemini-1.5-flash"))
+        || availableModels.find((m: any) => m.name.includes("gemini-pro"))
+        || (availableModels[0]);
+
+      if (!selectedModel) {
+        throw new Error("Nessun modello disponibile. Controlla il piano su AI Studio.");
       }
 
-      const modelName = bestModel.name; // Questo includerà già il prefisso "models/"
-      console.log(`Usando il miglior modello rilevato: ${modelName}`);
+      const modelName = selectedModel.name;
+      console.log(`Modello scelto: ${modelName}`);
 
-      // 3. Facciamo la chiamata col modello trovato
-      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/${modelName}:generateContent?key=${apiKey}`;
+      // 3. Chiamata alla V1 (più stabile per la quota)
+      const apiUrl = `https://generativelanguage.googleapis.com/v1/${modelName}:generateContent?key=${apiKey}`;
 
       const response = await fetch(apiUrl, {
         method: 'POST',
@@ -289,13 +288,16 @@ Include a brief disclaimer if answering medical or drug-related topics.`;
       const data = await response.json();
 
       if (!response.ok) {
+        if (response.status === 429) {
+          throw new Error("Limite velocità raggiunto (429). Attendi 1 minuto.");
+        }
         throw new Error(data.error?.message || `Errore Google: ${response.status}`);
       }
 
       const responseText = data.candidates?.[0]?.content?.parts?.[0]?.text;
 
       if (!responseText) {
-        throw new Error("Risposta vuota da Google. Controlla i crediti/quoti.");
+        throw new Error("Risposta vuota. Controlla i permessi della chiave.");
       }
 
       const aiMessage = { text: responseText, sender: 'ai' };
@@ -304,11 +306,7 @@ Include a brief disclaimer if answering medical or drug-related topics.`;
     } catch (error) {
       console.error('Gemini API error:', error);
       const errorMsg = error instanceof Error ? error.message : "Errore ignoto";
-
-      const errorMessage = {
-        text: `⚠️ Errore Coach: ${errorMsg}`,
-        sender: 'ai'
-      };
+      const errorMessage = { text: `⚠️ Coach: ${errorMsg}`, sender: 'ai' };
       setMessages(prev => [...prev, errorMessage]);
     } finally {
       setLoading(false);
