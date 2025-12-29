@@ -341,8 +341,8 @@ Include a brief disclaimer if answering medical or drug-related topics.`;
             className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} message-appear`}
           >
             <div className={`p-4 rounded-3xl max-w-[85%] md:max-w-[75%] premium-shadow transition-all duration-300 ${msg.sender === 'user'
-                ? 'bg-gradient-to-br from-brandPrimary to-brandPrimaryDark text-white rounded-tr-none'
-                : 'glass-panel text-textPrimary rounded-tl-none border-l-4 border-brandPrimary'
+              ? 'bg-gradient-to-br from-brandPrimary to-brandPrimaryDark text-white rounded-tr-none'
+              : 'glass-panel text-textPrimary rounded-tl-none border-l-4 border-brandPrimary'
               }`}>
               <div
                 className={`prose ${msg.sender === 'user' ? 'prose-invert' : ''} text-lg leading-relaxed`}
@@ -356,7 +356,7 @@ Include a brief disclaimer if answering medical or drug-related topics.`;
                   title="Read aloud"
                 >
                   {isSpeaking ? <VolumeX size={18} className="animate-pulse" /> : <Volume2 size={18} />}
-                  <span>{isSpeaking ? 'Smetti di ascoltare' : 'Ascolta il Coach'}</span>
+                  <span>{isSpeaking ? 'Stop Listening' : 'Listen to Coach'}</span>
                 </button>
               )}
             </div>
@@ -385,7 +385,7 @@ Include a brief disclaimer if answering medical or drug-related topics.`;
             className="w-full text-brandPrimary font-bold text-center py-2.5 px-4 rounded-xl border-2 border-dashed border-brandPrimary/30 hover:border-brandPrimary hover:bg-brandPrimary/5 transition-all duration-300 flex items-center justify-center gap-2 group"
           >
             <span className="text-xl group-hover:scale-125 transition-transform">+</span>
-            Includi ultime misurazioni PRESSIONE
+            Include recent Blood Pressure readings
           </button>
         </div>
 
@@ -407,10 +407,10 @@ Include a brief disclaimer if answering medical or drug-related topics.`;
           <button
             onClick={toggleListening}
             className={`p-4 rounded-2xl transition-all duration-300 flex-shrink-0 border-2 ${isListening
-                ? 'bg-red-500 text-white border-red-400 animate-pulse shadow-lg ring-4 ring-red-500/20'
-                : 'bg-white text-brandPrimary border-brandPrimary/5 hover:bg-brandPrimaryTint hover:border-brandPrimary/20 shadow-sm'
+              ? 'bg-red-500 text-white border-red-400 animate-pulse shadow-lg ring-4 ring-red-500/20'
+              : 'bg-white text-brandPrimary border-brandPrimary/5 hover:bg-brandPrimaryTint hover:border-brandPrimary/20 shadow-sm'
               }`}
-            title="Dilla voce"
+            title="Speak now"
           >
             {isListening ? <StopCircle size={26} /> : <Mic size={26} />}
           </button>
@@ -423,14 +423,14 @@ Include a brief disclaimer if answering medical or drug-related topics.`;
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSend()}
               className="w-full p-4 pl-5 pr-12 bg-white/80 border border-brandPrimary/10 rounded-2xl h-14 text-lg focus:outline-none focus:ring-2 focus:ring-brandPrimary/30 focus:bg-white transition-all shadow-inner"
-              placeholder={isListening ? "Sto ascoltando..." : "Chiedi al Coach o scrivi..."}
+              placeholder={isListening ? "Listening..." : "Ask Coach or type..."}
               disabled={loading}
             />
             <button
               onClick={handleSend}
               disabled={loading || !input.trim()}
               className="absolute right-2 top-2 bg-brandPrimary text-white rounded-xl h-10 w-10 flex items-center justify-center disabled:opacity-30 disabled:grayscale transition-all hover:bg-brandPrimaryDark hover:scale-105 active:scale-95 shadow-md"
-              aria-label="Invia"
+              aria-label="Send"
             >
               {loading ? <Loader2 className="animate-spin" size={20} /> : <Send size={20} />}
             </button>
