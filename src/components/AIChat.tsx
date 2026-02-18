@@ -267,7 +267,7 @@ Include a brief disclaimer if answering medical or drug-related topics.`;
 
       // Forced sync to Vercel - ensuring variables are defined
       const fullPrompt = messageText;
-      const personalizedSystemPrompt = SHORT_SYSTEM_PROMPT + "\n\n" + contextString;
+      const coachConfigPrompt = SHORT_SYSTEM_PROMPT + "\n\n" + contextString;
 
       // Use our secure Vercel proxy instead of direct client-side call
       const response = await fetch('/api/chat', {
@@ -275,7 +275,7 @@ Include a brief disclaimer if answering medical or drug-related topics.`;
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           prompt: fullPrompt,
-          system: personalizedSystemPrompt
+          system: coachConfigPrompt
         })
       });
 
