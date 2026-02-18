@@ -265,6 +265,7 @@ Be actionable and concrete — always include a practical suggestion.
 Use the user profile actively — reference their targets like sodium, activity, preferences.
 Include a brief disclaimer if answering medical or drug-related topics.`;
 
+      // Forced sync to Vercel - ensuring variables are defined
       const fullPrompt = messageText;
       const personalizedSystemPrompt = SHORT_SYSTEM_PROMPT + "\n\n" + contextString;
 
