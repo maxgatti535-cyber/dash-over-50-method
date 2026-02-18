@@ -417,7 +417,7 @@ Include a brief disclaimer if answering medical or drug-related topics.`;
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSend()}
               className="w-full p-4 pl-5 pr-12 bg-white/80 border border-brandPrimary/10 rounded-2xl h-14 text-lg focus:outline-none focus:ring-2 focus:ring-brandPrimary/30 focus:bg-white transition-all shadow-inner"
-              placeholder={isListening ? "Listening..." : "Ask Coach or type..."}
+              placeholder={isListening ? "Listening..." : "Ask Coach (v2.1) or type..."}
               disabled={loading}
             />
             <button
