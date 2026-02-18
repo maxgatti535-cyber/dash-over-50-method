@@ -2,7 +2,8 @@ import React, { useState, useEffect, Suspense, lazy } from 'react';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import WelcomeScreen from './components/WelcomeScreen'; // Direct import for faster startup
-import { getLocalStorageItem } from './components/utils';
+import { getLocalStorageItem, getTrialStatus, startTrial } from './components/utils';
+import TrialExpiredScreen from './components/TrialExpiredScreen';
 import {
   DashboardIcon,
   CoachIcon,
@@ -96,6 +97,8 @@ const App: React.FC = () => {
     }
   });
 
+  const [trialStatus, setTrialStatus] = useState(getTrialStatus());
+
   useEffect(() => {
     applyGlobalSettings(); // Apply on initial load
 
@@ -150,8 +153,14 @@ const App: React.FC = () => {
   if (onboardingState === 'profileSetup') {
     return <Suspense fallback={<LoadingFallback />}><ProfileSetupScreen onComplete={() => {
       localStorage.setItem('onboardingCompleted', 'true');
+      startTrial(); // Start the 7-day clock now
       setOnboardingState('complete');
+      setTrialStatus(getTrialStatus());
     }} /></Suspense>;
+  }
+
+  if (trialStatus.isExpired) {
+    return <TrialExpiredScreen onUnlock={() => setTrialStatus(getTrialStatus())} />;
   }
 
   const renderScreen = () => {

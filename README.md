@@ -61,9 +61,9 @@ dash-over-50-method/
 
 ## Deploy
 
-GitHub Pages + GitHub Actions
+Vercel
 
-Visita: `https://maxgatti535-cyber.github.io/dash-over-50-method/`
+Visita: `https://app.dashover50.com`
 
 ## Status
 ![Build Status](https://github.com/maxgatti535-cyber/dash-over-50-method/actions/workflows/main.yml/badge.svg)

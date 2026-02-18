@@ -24,7 +24,7 @@ const AICoach: React.FC<AICoachProps> = ({ initialPrompt, clearInitialPrompt }) 
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isDark, setIsDark] = useState(() => {
-    const setting = getLocalStorageItem<'light' | 'dark' | 'system'>('display.theme', 'light');
+    const setting = getLocalStorageItem<string>('display.theme', 'light');
     if (setting === 'dark') return true;
     if (setting === 'system') return window.matchMedia('(prefers-color-scheme: dark)').matches;
     return false;
@@ -265,61 +265,29 @@ Be actionable and concrete — always include a practical suggestion.
 Use the user profile actively — reference their targets like sodium, activity, preferences.
 Include a brief disclaimer if answering medical or drug-related topics.`;
 
-      const personalizedSystemPrompt = SHORT_SYSTEM_PROMPT;
+      const fullPrompt = messageText;
+      const personalizedSystemPrompt = SHORT_SYSTEM_PROMPT + "\n\n" + contextString;
 
-      const apiKey = import.meta.env.VITE_GOOGLE_API_KEY;
-      if (!apiKey) {
-        const errorMessage = { text: '⚠️ API key mancante. Controlla le impostazioni di sicurezza.', sender: 'ai' };
-        setMessages(prev => [...prev, errorMessage]);
-        return false;
-      }
-
-      const fullPrompt = `${personalizedSystemPrompt}\n\n${contextString}\n\n${messageText}`;
-
-      // 1. Chiediamo a Google quali modelli possiamo usare
-      const listModelsUrl = `https://generativelanguage.googleapis.com/v1/models?key=${apiKey}`;
-      const listResponse = await fetch(listModelsUrl);
-      const listData = await listResponse.json();
-
-      const availableModels = listData.models || [];
-
-      // 2. Cerchiamo gemini-1.5-flash (il più robusto per piano gratuito)
-      let selectedModel = availableModels.find((m: any) => m.name === "models/gemini-1.5-flash")
-        || availableModels.find((m: any) => m.name.includes("gemini-1.5-flash"))
-        || availableModels.find((m: any) => m.name.includes("gemini-pro"))
-        || (availableModels[0]);
-
-      if (!selectedModel) {
-        throw new Error("Nessun modello disponibile. Controlla il piano su AI Studio.");
-      }
-
-      const modelName = selectedModel.name;
-      console.log(`Modello scelto: ${modelName}`);
-
-      // 3. Chiamata alla V1 (più stabile per la quota)
-      const apiUrl = `https://generativelanguage.googleapis.com/v1/${modelName}:generateContent?key=${apiKey}`;
-
-      const response = await fetch(apiUrl, {
+      // Use our secure Vercel proxy instead of direct client-side call
+      const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: fullPrompt }] }]
+          prompt: fullPrompt,
+          system: personalizedSystemPrompt
         })
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        if (response.status === 429) {
-          throw new Error("Limite velocità raggiunto (429). Attendi 1 minuto.");
-        }
-        throw new Error(data.error?.message || `Errore Google: ${response.status}`);
+        throw new Error(data.error || `Server error: ${response.status}`);
       }
 
-      const responseText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      const responseText = data.answer;
 
       if (!responseText) {
-        throw new Error("Risposta vuota. Controlla i permessi della chiave.");
+        throw new Error("Empty response from Coach.");
       }
 
       const aiMessage = { text: responseText, sender: 'ai' };
@@ -327,7 +295,7 @@ Include a brief disclaimer if answering medical or drug-related topics.`;
       success = true;
     } catch (error) {
       console.error('Gemini API error:', error);
-      const errorMsg = error instanceof Error ? error.message : "Errore ignoto";
+      const errorMsg = error instanceof Error ? error.message : "Internal error";
       const errorMessage = { text: `⚠️ Coach: ${errorMsg}`, sender: 'ai' };
       setMessages(prev => [...prev, errorMessage]);
     } finally {
@@ -366,8 +334,8 @@ Include a brief disclaimer if answering medical or drug-related topics.`;
             className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} message-appear`}
           >
             <div className={`p-4 rounded-3xl max-w-[85%] md:max-w-[75%] premium-shadow transition-all duration-300 ${msg.sender === 'user'
-                ? 'bg-gradient-to-br from-brandPrimary to-brandPrimaryDark text-white rounded-tr-none'
-                : `${isDark ? 'glass-panel-dark text-white' : 'glass-panel text-textPrimary'} rounded-tl-none border-l-4 border-brandPrimary`
+              ? 'bg-gradient-to-br from-brandPrimary to-brandPrimaryDark text-white rounded-tr-none'
+              : `${isDark ? 'glass-panel-dark text-white' : 'glass-panel text-textPrimary'} rounded-tl-none border-l-4 border-brandPrimary`
               }`}>
               <div
                 className={`prose ${msg.sender === 'user' ? 'prose-invert' : ''} text-lg leading-relaxed`}
